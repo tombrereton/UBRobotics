@@ -38,7 +38,9 @@ Serial.println(counter[0]);
 }
 
 void Car::turn(int ticks) {
-	counter[0] = 0;
+isRunning = true;
+
+counter[0] = 0;
 
 	if (ticks < 0){
 		digitalWrite(directionPin[0], HIGH);
@@ -52,7 +54,7 @@ void Car::turn(int ticks) {
 	digitalWrite(pwmPin[0], HIGH);
 	digitalWrite(pwmPin[1], HIGH);
 
-	isRunning = true;
+	
 
 	while (counter[0] < abs(ticks)){
 		delayMicroseconds(1);
