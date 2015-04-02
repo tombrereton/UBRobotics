@@ -21,6 +21,8 @@ class Car
 	  Car(int direction0, int direction1, int interrupt0, int interrupt1, int pwm0, int pwm1, int buzzer);
     void displayCounters();
     void turn(int ticks);
+    void move(int speed);
+    void stop();
 	int counter[2];
 	bool state[2];
 	int interruptPin[2]; //Right, Left

@@ -64,5 +64,28 @@ counter[0] = 0;
 	digitalWrite(pwmPin[1], LOW);
 	Serial.print("End of Cycle.");
 	isRunning = false;
-	tone(buzzerPin, 440, 500);
+}
+
+void Car::move(int speed){
+	if (speed <= 0){ //Reverse
+		digitalWrite(directionPin[0], HIGH);	
+		digitalWrite(directionPin[1], HIGH);	
+	}
+
+	else {
+		digitalWrite(directionPin[0], LOW);	
+		digitalWrite(directionPin[1], LOW);	
+	}
+
+	if (abs(speed) > 255){
+		speed = 255;
+	}
+
+	analogWrite(pwmPin[0], abs(speed));
+	analogWrite(pwmPin[1], abs(speed));
+}
+
+void Car::stop(){
+	digitalWrite(pwmPin[0], LOW);
+	digitalWrite(pwmPin[1], LOW);
 }
