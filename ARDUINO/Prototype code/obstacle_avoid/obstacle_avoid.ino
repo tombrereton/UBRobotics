@@ -2,7 +2,7 @@
 
 #include <Car.h>
 
-NewPing ping(26, 25, 30);
+NewPing ping(26, 25, 60);
 
 Car car(22, 24, 2, 3, 4, 5, 6);
 
@@ -16,7 +16,7 @@ Serial.begin(9600);
 
 void loop() {
   // put your main code here, to run repeatedly:
-  if ((ping.ping_cm() <= 5)&&(ping.ping_cm() != 0)){
+  if ((ping.ping_cm() <= 15)&&(ping.ping_cm() != 0)){
     car.stop();
     delay(50);
     car.move(-200);
