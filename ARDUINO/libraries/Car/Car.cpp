@@ -1,3 +1,11 @@
+/*
+DAGU ROVER 5 Arduino Class created by Yuya Takeuchi
+
+Do not distribute, only for use in UBRobotics (University of Birmingham Robotics Club) projects
+
+2016 UNIVERSITY OF BIRMINGHAM ROBOTICS CLUB
+*/
+
 #include "Car.h"
 #include "Arduino.h"
 
