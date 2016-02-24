@@ -1,14 +1,4 @@
-/*
-Interrupt Number to Pin Conversions:
-
-0 = Pin 2
-1 = Pin 3
-2 = Pin 21
-3 = Pin 20
-4 = Pin 19
-5 = Pin 18
-
-*/
+//Refer to Car.cpp and the TEST.ino notes
 
 #ifndef Car_h
 #define Car_h
