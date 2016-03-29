@@ -60,12 +60,12 @@ float Madgyro::readYaw() {
   filter.updateIMU(gx / factor, gy / factor, gz / factor, ax, ay, az);
 
   // functions to find yaw roll and pitch from quaternions
-  yaw = filter.getYaw();
+  theyaw = filter.getYaw();
 
-  return yaw;
+  return theyaw;
 }
 
-void Madgyro::calibrate() {
+void Madgyro::calibrate() { //Force calibration
 	// use the code below to calibrate accel/gyro offset values
 	/*
 	Serial.println("Internal sensor offsets BEFORE calibration...");

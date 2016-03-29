@@ -16,7 +16,7 @@ class Madgyro
 		Madgwick filter; // initialise Madgwick object
 		int ax, ay, az;
 		int gx, gy, gz;
-		float yaw;
+		float theyaw;
 		float pitch;
 		float roll;
 		int factor = 800; // variable by which to divide gyroscope values, used to control sensitivity
