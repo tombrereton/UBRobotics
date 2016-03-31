@@ -16,9 +16,11 @@ WIRING THE ROVER 5
 2. Connect Left track to Channel 1, Right to Channel 2
 3. Take any TWO of the Digital Pins from the Arduino and connect to the controller's CH1 Direction and CH2 Direction headers. Make note of the pin numbers.
 4. Refer to Rover 5 manual online for schematic of its rotary encoders
-5. Connect the Left and Right interrupt jumpers from the Rover 5 to CH1 and CH2 INT pins respectively. Also connect the respective ground pins.
+5. Connect the Left and Right encoder jumpers to the motor controller
 6. Take any TWO analog out (PWM) pin from the Arduino and connect to the controller's CH1 PWM and CH2 PWM headers. Make note of the pin numbers
 OPTIONAL: Connect a buzzer across any digital pin and GND
+7: Connect Pins 2 and 3 to the INT pins of CH1 and CH2 of the motor controller and make note of the pins.
+https://www.arduino.cc/en/Reference/AttachInterrupt
 
 The pin numbers you noted will be declared when you make an instance of the Car class. For example:
 
