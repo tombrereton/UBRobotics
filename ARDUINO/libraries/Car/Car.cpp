@@ -6,8 +6,11 @@ Do not distribute, only for use in UBRobotics (University of Birmingham Robotics
 2016 UNIVERSITY OF BIRMINGHAM ROBOTICS CLUB
 */
 
+//Check that the below libraries are installed:
+
 #include "Car.h"
 #include "Arduino.h"
+#include "Madgyro.h"
 
 /*
 WIRING THE ROVER 5
@@ -29,7 +32,7 @@ The pin numbers you noted will be declared when you make an instance of the Car 
 Where the numbers correspond to the pins noted. The meaning of the pins are explained below, in that order
 */
 
-Car::Car(int direction0, int direction1, int interrupt0, int interrupt1, int pwm0, int pwm1, int buzzer) {
+Car::Car(int direction0, int direction1, int interrupt0, int interrupt1, int pwm0, int pwm1, int buzzer, int turns) {
 
 /*
 Variable Declarations
@@ -44,6 +47,8 @@ pwm0 = Left Track PWM Pin ANALOG OUT
 pwm1 = Right Track PWM Pin ANALOG OUT
 
 buzzer = Pin for diagnostic buzzer DIGITAL (If no buzzer just set to unused digital pin)
+
+turningSpeed = Turning PWM speed (0 - 255)
 */
 
 
@@ -70,6 +75,12 @@ digitalWrite(interruptPin[1], LOW);
 
 //Test
 buzzerPin = buzzer;
+
+if (abs(turns) > 255){ //Limit of turning speed is 255
+	turns = 255;
+}
+
+turningSpeed = abs(turns);
 }
 
 
@@ -116,8 +127,8 @@ counter[0] = 0; //Reset encoder counter
 	isRunning = false; //Important
 }
 
-void Car::move(int speed){ //Move forward at given speed between -255 and 255
-	if (speed <= 0){ //If speed is negative, then REVERSE the direction
+void Car::move(int distance, int speed){
+	if (speed <= 0){
 		digitalWrite(directionPin[0], HIGH);	
 		digitalWrite(directionPin[1], HIGH);	
 	}
@@ -127,16 +138,55 @@ void Car::move(int speed){ //Move forward at given speed between -255 and 255
 		digitalWrite(directionPin[1], LOW);	
 	}
 
-	if (abs(speed) > 255){ //If magnitude of speed is greater than allowed, cast it back to maximum speed
-		speed = 255;
-	}
-
 	//Set PWM pins to given speed
 	analogWrite(pwmPin[0], abs(speed));
 	analogWrite(pwmPin[1], abs(speed));
+
+	counter[0] = 0;
+
+	while (counter[0] < abs(distance)){ //While the magnitude of ticks is below the required number of steps, stay in loop
+		delayMicroseconds(1);
+	}
+
+	analogWrite(pwmPin[0], 0);
+	analogWrite(pwmPin[1], 0);
 }
 
 void Car::stop(){ //Stop the car by bringing both PWM pins to LOW
 	digitalWrite(pwmPin[0], LOW);
 	digitalWrite(pwmPin[1], LOW);
+}
+
+void Car::gyroturn(int radians){ //Turn by angle radians
+	//Set direction (Positive = Counter Clockwise)
+	if (radians > 0){
+		//CCW
+		digitalWrite(directionPin[0], LOW);
+		digitalWrite(directionPin[1], HIGH);
+	}
+	else{
+		digitalWrite(directionPin[1], LOW);
+		digitalWrite(directionPin[0], HIGH);
+	}
+
+	Madgyro turning; //Activate gyro
+
+	analogWrite(pwmPin[0], turningSpeed);
+	analogWrite(pwmPin[1], turningSpeed);
+
+	while (abs(turning.readYaw()) < abs(radians)){ //While the magnitude of the GYRO YAW is less than the magnitude of REQUIRED CALIBRATED RADIANS
+		delay(45);
+	}
+	//Turn off the car
+	analogWrite(pwmPin[0], 0);
+	analogWrite(pwmPin[1], 0);
+}
+
+int Car::calibrategyro(){
+	Madgyro turning; //Activate Gyro
+	tone(buzzerPin,10);
+	delay(5000); //You have 5 seconds to turn the robot 90deg CCW
+	rightangle = turning.readYaw(); //Calibrate raw value of a 90deg turn
+	noTone(buzzerPin); //End feedback
+	return rightangle;
 }

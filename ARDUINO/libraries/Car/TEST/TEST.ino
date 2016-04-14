@@ -1,6 +1,6 @@
 #include <Car.h> //Include the library
 
-Car car(10, 11, 2, 3, 6, 7, 13); //Make a new instance of class 'car' called 'Car' with the following pins
+Car car(10, 11, 2, 3, 6, 7, 13, 255); //Make a new instance of class 'car' called 'Car' with the following pins
 
 /*
 Refer to Car.cpp in the library for the meaning of the numbers
@@ -9,10 +9,13 @@ This code is the bare minimum required to get the chassis moving, and a bit more
 */
 
 void setup() {
+Serial.begin(9600);
+delay(2000);
 attachInterrupt(car.interruptPin[0], onPulse, CHANGE); //Attach interrupt pins. Even though we have set up interrupts for both tracks, simultaneously running two interrupts causes problems (workaround needed)
-car.turn(500); //Turn the car anticlockwise by 500 ticks
-  delay (1000); //Pause for 1000 ms (It's good practice to put in breaks between commands)
-car.turn(-200); //Turn the car clockwise by 200 ticks
+
+car.gyroturn(1.57);
+delay(1000);
+car.gyroturn(-1.57);
 }
 
 void loop() {
