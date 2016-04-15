@@ -15,4 +15,6 @@ Prototype code contains random sketches that experiment with different features 
 
 Remember, some of the libraries have other custom libraries as requirement, check that you have them installed before you compile the code.
 
+ADVANCED: For ease of use you should change the Arduino IDE sketch folder to 'ARDUINO' folder of this library.
+
 Happy Coding!
