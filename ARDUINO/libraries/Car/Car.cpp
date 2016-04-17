@@ -175,7 +175,7 @@ void Car::gyroturn(int radians){ //Turn by angle radians
 	analogWrite(pwmPin[1], turningSpeed);
 
 	while (abs(turning.readYaw()) < abs(radians)){ //While the magnitude of the GYRO YAW is less than the magnitude of REQUIRED CALIBRATED RADIANS
-		delay(45);
+		delay(48);
 	}
 	//Turn off the car
 	analogWrite(pwmPin[0], 0);
