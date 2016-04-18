@@ -23,8 +23,8 @@ attachInterrupt(car.interruptPin[0], onPulse, CHANGE); //Attach interrupt pins. 
 //START
 
 delay(1000);
-leftarm.write(175);
-rightarm.write(45);
+leftclose(); //RETRACT ARMS
+rightclose();
 
 car.move(1300,250); //distance,speed
 delay(5000);
@@ -32,18 +32,23 @@ car.move(1300,-250); //distance,speed
 car.move(700,250); //distance,speed
 car.gyroturn(-M_PI/2);
 
-leftarm.write(45);
-rightarm.write(175);
+leftopen();
+rightopen();
 
 car.move(700,250); //distance,speed
+rightclose();
 car.gyroturn(-M_PI/2);
-car.move(700,250); //distance,speed
+rightopen();
+car.move(800,250); //distance,speed
+rightclose();
 car.gyroturn(-M_PI/2);
+rightopen();
 car.move(700,250); //distance,speed
+
+leftclose();
+rightclose();
 car.turn(100);
-
-leftarm.write(175);
-rightarm.write(45);
+car.move(1700,-250);
 }
 
 void loop(){
@@ -101,3 +106,17 @@ void onPulse() {
     car.state[0] = false;
   }
 }
+
+void leftclose(){
+  leftarm.write(175);
+}
+void leftopen(){
+  leftarm.write(45);
+}
+void rightclose(){
+  rightarm.write(45);
+}
+void rightopen(){
+  rightarm.write(175);
+}
+
