@@ -150,6 +150,8 @@ void Car::move(int distance, int speed){
 
 	analogWrite(pwmPin[0], 0);
 	analogWrite(pwmPin[1], 0);
+
+	delay(1000);
 }
 
 void Car::stop(){ //Stop the car by bringing both PWM pins to LOW
@@ -175,7 +177,7 @@ void Car::gyroturn(int radians){ //Turn by angle radians
 	analogWrite(pwmPin[1], turningSpeed);
 
 	while (abs(turning.readYaw()) < abs(radians)){ //While the magnitude of the GYRO YAW is less than the magnitude of REQUIRED CALIBRATED RADIANS
-		delay(48);
+		delay(48); //IMPORTANT SETS SENSITIVITY
 	}
 	//Turn off the car
 	analogWrite(pwmPin[0], 0);
