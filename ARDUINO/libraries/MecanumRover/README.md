@@ -38,7 +38,7 @@ Encoders should be connected as follows:
 
 REQUIRED CODE WITHIN SKETCH:
 
-PLace the constructor at the top of the sketch:
+Place the constructor at the top of the sketch:
 
 	MecanumRover rover(3,5,7,9,2,4,6,8,18,19,20,21,0,1,2,3,100,5); //Where the numbers correspond to: 1-4 Direction Pins, 5-8 PWM Pins, 9-12 Interrupt Pins, 13-16 Current Read Pins, 17 Base Speed, 18 Correction Factor 
 
