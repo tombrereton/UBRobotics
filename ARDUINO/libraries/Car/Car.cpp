@@ -76,9 +76,9 @@ digitalWrite(interruptPin[1], LOW);
 //Test
 buzzerPin = buzzer;
 
-if (abs(turns) > 255){ //Limit of turning speed is 255
-	turns = 255;
-}
+	if (abs(turns) > 255){ //Limit of turning speed is 255
+		turns = 255;
+	}
 
 turningSpeed = abs(turns);
 }
