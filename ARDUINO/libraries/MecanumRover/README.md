@@ -36,8 +36,6 @@ Encoders should be connected as follows:
 
 	J6 - Rear Left
 
-~~~~~~~~~~
-
 REQUIRED CODE WITHIN SKETCH:
 
 PLace the constructor at the top of the sketch:
@@ -67,8 +65,6 @@ Place the following at the bottom of the sketch:
 	void count3(){
 	  rover.counter[3] ++;
 	}
-
-~~~~~~~~~~
 
 NOTES (proposed improvements marked with *):
 
