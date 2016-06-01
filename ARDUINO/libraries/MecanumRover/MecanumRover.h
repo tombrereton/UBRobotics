@@ -14,11 +14,13 @@ class MecanumRover
     int baseSpeed; //Base speed of movement
 	int interruptPin[4]; //Interrupt pins of Arduino for 4 wheels
     int counter[4]; //Counter of encoder
+    int encoderChangeTime[4]; //The time in milliseconds between the start of the Arduino and the last tick of the encoder
   private:
     int pwmPin[4]; //PWM pins of controller for speed of all 4 wheels
     int directionPin[4]; //Digital pins of controller for direction for 4 wheels
     int currentPin[4]; //Analog Input pins for reading motor current
     int currentCurrent[4]; //What is the motor current now?
+    void checkIfStuck(int ticks);   //Is the robot stuck somewhere whilst moving?
 };
 
 #endif

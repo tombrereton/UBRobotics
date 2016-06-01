@@ -1,5 +1,10 @@
 #include "Arduino.h"
 #include "MecanumRover.h"
+#include <SPI.h>
+#include <HCMAX7219.h>
+
+int lastEncoder[4]; //Previous encoder position 
+HCMAX7219 HCMAX7219(10); // SETUP THE LED DISPLAY (Pin 10 = CS 51 = DIN 52 = CLK)
 
 MecanumRover::MecanumRover(int dir0, int dir1, int dir2, int dir3, int pwm0, int pwm1, int pwm2, int pwm3, int int0, int int1, int int2, int int3, int cur0, int cur1, int cur2, int cur3, int base, float factor){
   directionPin[0] = dir0; //Initialise direction pins
@@ -35,7 +40,7 @@ MecanumRover::MecanumRover(int dir0, int dir1, int dir2, int dir3, int pwm0, int
 
 void MecanumRover::adjustSpeed(){ //Change the speed of the 4 wheels according to the average rotational displacement of all 4 wheels
   int averageCount = (counter[0] + counter[1] + counter [2] + counter[3]) / 4;  //Average rotational displacement of all 4 wheels
-
+  
   for (int i = 0; i < 4; i ++){
     int correction = averageCount - counter[i]; //Difference of current wheel from average
     int adjusted = baseSpeed + correction * correctionFactor; //Change PWM level according to difference
@@ -47,6 +52,19 @@ void MecanumRover::adjustSpeed(){ //Change the speed of the 4 wheels according t
 }
 
 void MecanumRover::move(int ticks){ //Move forward/backward a number of ticks
+  if (ticks > 0){
+    digitalWrite(directionPin[0], LOW);
+    digitalWrite(directionPin[1], LOW);
+    digitalWrite(directionPin[2], HIGH);
+    digitalWrite(directionPin[3], HIGH);
+  }
+  else {
+    digitalWrite(directionPin[0], HIGH);
+    digitalWrite(directionPin[1], HIGH);
+    digitalWrite(directionPin[2], LOW);
+    digitalWrite(directionPin[3], LOW);
+  }
+
   int startTime = millis();
 
   for (int i = 0; i < 4; i ++){
@@ -55,13 +73,8 @@ void MecanumRover::move(int ticks){ //Move forward/backward a number of ticks
   }
 
   while(counter[0] + counter[1] + counter[2] + counter[3] < ticks * 4){ //While total sum of encoders for all wheels is less than the desired distance x4
-
-    for (int i = 0; i < 4; i ++){ //For all 4 wheels
-      if (counter[i] >= abs(ticks)){ //If the wheel has turned as much as the magnitude of the required ticks
-        analogWrite(pwmPin[i], 0); //Off
-      }
-    }
     adjustSpeed();
+    checkIfStuck(ticks); //Check for stuck, if stuck then break out
   }  
     
   for (int i = 0; i < 4; i ++){ //For all 4 wheels
@@ -93,9 +106,18 @@ void MecanumRover::move(int ticks){ //Move forward/backward a number of ticks
   Serial.print(endTime);
   Serial.println(" milliseconds");
   Serial.println();
+
+  HCMAX7219.Clear();
+  HCMAX7219.print7Seg(endTime, 8); //Print Time taken
+  HCMAX7219.Refresh();
 }
 
 void MecanumRover::testHardware(){
+    digitalWrite(directionPin[0], LOW);
+    digitalWrite(directionPin[1], LOW);
+    digitalWrite(directionPin[2], HIGH);
+    digitalWrite(directionPin[3], HIGH);
+
   for (int i = 0; i < 4; i ++){
     counter[i] = 0; //Initialise encoder count
     analogWrite(pwmPin[i], 255); //Max speed
@@ -126,5 +148,39 @@ void MecanumRover::testHardware(){
   for (int i = 0; i < 4; i ++){
     analogWrite(pwmPin[i], 0); //OFF
   }  
+
+  //Display on 7 SEG
+
+  HCMAX7219.Clear();
+  HCMAX7219.print7Seg("POWER", 8); //Print Text taken
+  HCMAX7219.Refresh();
+  delay(2000);
+  for (int i = 0; i < 4; i ++){
+    HCMAX7219.Clear();
+    HCMAX7219.print7Seg(currentCurrent[i], 8); //Print Current
+    HCMAX7219.Refresh();
+    delay(2000);
+  }
+  HCMAX7219.Clear();
   delay(5000);
+}
+
+void MecanumRover::checkIfStuck(int ticks){
+  for (int i = 0; i < 4; i ++){
+    if (millis() - encoderChangeTime[i] > 2000){ //Has it been long since the last time the encoder ticked
+      for (int v = 0; v < 4; v ++){ //Turn them all off
+        analogWrite(pwmPin[v], 0); //OFF
+      }
+      HCMAX7219.Clear();
+      HCMAX7219.print7Seg("STUCK", 8); //Print Text taken
+      HCMAX7219.Refresh();
+      delay(1000);
+
+      HCMAX7219.Clear();
+      HCMAX7219.print7Seg(i+1, 8); //Print which wheel is stuck
+      HCMAX7219.Refresh();
+      delay(1000);
+      counter[i] += abs(ticks); //Make counter overflow so movement is cancelled
+    }
+  }  
 }
