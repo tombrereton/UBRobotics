@@ -32,7 +32,7 @@ The pin numbers you noted will be declared when you make an instance of the Car 
 Where the numbers correspond to the pins noted. The meaning of the pins are explained below, in that order
 */
 
-Car::Car(int direction0, int direction1, int interrupt0, int interrupt1, int pwm0, int pwm1, int buzzer, int turns) {
+Car::Car(int direction0, int direction1, int interrupt0, int interrupt1, int pwm0, int pwm1, int buzzer, int turns, int ping0, int echo0) {
 
 /*
 Variable Declarations
@@ -53,6 +53,8 @@ turningSpeed = Turning PWM speed (0 - 255)
 
 
 //Now initialise all PIN NUMBERS to a variable
+trigPin = ping0; // Ultrasound Ping Pin
+echoPin = echo0;
 
 directionPin[0] = direction0;
 directionPin[1] = direction1;
@@ -144,8 +146,36 @@ void Car::move(int distance, int speed){
 
 	counter[0] = 0;
 
+	bool stopped = false;
+
 	while (counter[0] < abs(distance)){ //While the magnitude of ticks is below the required number of steps, stay in loop
 		delayMicroseconds(1);
+		int sensorRead = readSensor();
+		if ((sensorRead < 45)&&(sensorRead != 0)){ //IS THERE OBSTRUCTION
+			analogWrite(pwmPin[0], 0); //STOP
+			analogWrite(pwmPin[1], 0);
+			stopped = true;
+		}
+		else{
+			if (stopped == true){
+				sensorRead = readSensor();
+				if ((sensorRead < 45)&&(sensorRead != 0)){ 
+					analogWrite(pwmPin[0], 0); //STOP
+					analogWrite(pwmPin[1], 0);
+					stopped = true;
+				}
+				else {
+					analogWrite(pwmPin[0], abs(speed));
+					analogWrite(pwmPin[1], abs(speed));
+					stopped = false;
+				}
+			}
+			else {
+			analogWrite(pwmPin[0], abs(speed));
+			analogWrite(pwmPin[1], abs(speed));
+			stopped = false;
+			}
+		}
 	}
 
 	analogWrite(pwmPin[0], 0);
@@ -177,11 +207,17 @@ void Car::gyroturn(int radians){ //Turn by angle radians
 	analogWrite(pwmPin[1], turningSpeed);
 
 	while (abs(turning.readYaw()) < abs(radians)){ //While the magnitude of the GYRO YAW is less than the magnitude of REQUIRED CALIBRATED RADIANS
-		delay(48); //IMPORTANT SETS SENSITIVITY
+		if (radians > 0){ //ANTICLOCK
+		delay(47); //IMPORTANT SETS SENSITIVITY (LOWER IS SMALLER)	
+		}
+		else {
+			delay(43);
+		}
 	}
 	//Turn off the car
 	analogWrite(pwmPin[0], 0);
 	analogWrite(pwmPin[1], 0);
+	delay(1000);
 }
 
 int Car::calibrategyro(){
@@ -191,4 +227,39 @@ int Car::calibrategyro(){
 	rightangle = turning.readYaw(); //Calibrate raw value of a 90deg turn
 	noTone(buzzerPin); //End feedback
 	return rightangle;
+}
+
+long Car::readSensor() {
+
+  long duration, cm;
+
+pinMode(trigPin, OUTPUT);
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Read the signal from the sensor: a HIGH pulse whose
+  // duration is the time (in microseconds) from the sending
+  // of the ping to the reception of its echo off of an object.
+  pinMode(echoPin, INPUT);
+  duration = pulseIn(echoPin, HIGH);
+
+  // convert the time into a distance
+  cm = microsecondsToCentimeters(duration);
+  
+  return(cm);
+  delay(100);
+}
+/*
+
+Following snippet of code is neccesary for the interrupt to work properly. Always include in your sketches.
+
+*/
+long Car::microsecondsToCentimeters(long microseconds) {
+  // The speed of sound is 340 m/s or 29 microseconds per centimeter.
+  // The ping travels out and back, so to find the distance of the
+  // object we take half of the distance travelled.
+  return microseconds / 29 / 2;
 }

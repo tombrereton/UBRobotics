@@ -9,6 +9,13 @@ const int pingPin = 13;
 float M_PI = 3.14159265359;
 int startPin = 12; //STARTING PIN
 
+//SERVO SHIT
+
+
+Servo myservo;  // create servo object to control a servo
+
+int pos = 0;    // variable to store the servo position
+
 /*
 Refer to Car.cpp in the library for the meaning of the numbers
 
@@ -23,28 +30,33 @@ attachInterrupt(car.interruptPin[0], onPulse, CHANGE); //Attach interrupt pins. 
 
 leftclose(); //RETRACT ARMS
 rightclose();
+//fishthing();
 
 //WAIT FOR SWITCH
 while(digitalRead(startPin) == LOW){
   delay(1);
 }
 
-//START EUROBOT yellow
+//START EUROBOT green
+
 car.move(1200,250);
-car.move(700,-250);
-car.gyroturn(M_PI/2);
+delay(5000);
+car.move(200,-250);
+car.gyroturn(-M_PI/2);
 leftopen();
 rightopen();
 car.move(600, 250); //Collect 1+2
-leftclose();
-car.gyroturn(M_PI/2);
-leftopen();
-car.move(350,250); //Collect 3
-leftclose();
-car.gyroturn(M_PI/2);
-leftopen();
-car.move(600,250); //Collect 4 back to start
-car.turn(-200); //Turn a bit to push them back into the beach towel
+rightclose();
+car.gyroturn(-M_PI/2);
+rightopen();
+car.move(500,250); //Collect 3
+rightclose();
+car.gyroturn(-M_PI/2);
+rightopen();
+car.move(900,250); //Collect 4 back to start
+
+//Close arms for fish
+
 }
 
 void loop(){
@@ -63,15 +75,28 @@ void onPulse() {
 }
 
 void leftclose(){
-  leftarm.write(175);
+ // leftarm.write(175);
 }
 void leftopen(){
-  leftarm.write(55);
+ // leftarm.write(55);
 }
 void rightclose(){
-  rightarm.write(55);
+ // rightarm.write(55);
 }
 void rightopen(){
-  rightarm.write(175);
+//  rightarm.write(175);
 }
 
+void fishthing(){
+  delay(1000);
+leftarm.detach();
+rightarm.detach();
+delay(100);
+myservo.attach(5);
+myservo.write(170);
+delay(1000);
+myservo.detach();
+
+leftarm.attach(leftarmPin);
+rightarm.attach(rightarmPin);
+}
