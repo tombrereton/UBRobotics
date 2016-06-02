@@ -3,7 +3,7 @@
 #include <SPI.h>
 #include <HCMAX7219.h>
 
-int distanceLimit = 30;
+int distanceLimit = 40;
 int lastEncoder[4]; //Previous encoder position 
 HCMAX7219 HCMAX7219(10); // SETUP THE LED DISPLAY (Pin 10 = CS 51 = DIN 52 = CLK)
 
@@ -109,7 +109,7 @@ void MecanumRover::move(int ticks, NewPing frontSensor, NewPing rearSensor){ //M
     
 
     adjustSpeed();
-    checkIfStuck(abs(ticks)); //Check for stuck, if stuck then break out
+   // checkIfStuck(abs(ticks)); //Check for stuck, if stuck then break out
   }  
     
   for (int i = 0; i < 4; i ++){ //For all 4 wheels

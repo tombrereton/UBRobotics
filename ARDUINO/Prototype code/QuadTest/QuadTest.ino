@@ -38,7 +38,7 @@ else {
 
 void loop() {
   // put your main code here, to run repeatedly:
-rover.move(3000, frontSensor, rearSensor);
+rover.move(500, frontSensor, rearSensor);
 }
 
 //Keep the following interrupt code simple and non-intensive for accurate operation
