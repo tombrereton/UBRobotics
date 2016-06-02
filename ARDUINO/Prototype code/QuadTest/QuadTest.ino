@@ -1,9 +1,13 @@
 #include <MecanumRover.h>
 #include <SPI.h>
 #include <HCMAX7219.h>
+#include <NewPing.h>
 
 int greenButton = 14; //Pin of green button for mode selection
-MecanumRover rover(3,5,7,9,2,4,6,8,18,19,20,21,0,1,2,3,30,5); //1-4 Direction Pins, 5-8 PWM Pins, 9-12 Interrupt Pins, 13-16 Current Read Pins, 15 Base Speed, 16 Correction Factor 
+MecanumRover rover(3,5,7,9,2,4,6,8,18,19,20,21,0,1,2,3,50,0.5); //1-4 Direction Pins, 5-8 PWM Pins, 9-12 Interrupt Pins, 13-16 Current Read Pins, 15 Base Speed, 16 Correction Factor 
+
+NewPing frontSensor(13, 12, 100);
+NewPing rearSensor(31, 32, 100);
 
 void setup() {
   // put your setup code here, to run once:
@@ -30,12 +34,11 @@ else {
   delay(1000);
 }
 
-rover.move(3000);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-
+rover.move(3000, frontSensor, rearSensor);
 }
 
 //Keep the following interrupt code simple and non-intensive for accurate operation
