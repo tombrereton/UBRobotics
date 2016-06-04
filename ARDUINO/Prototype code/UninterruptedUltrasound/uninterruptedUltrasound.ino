@@ -7,6 +7,8 @@ const int maxRange = 50; // (cm)
 
 long unsigned int startTime;
 
+int prevDist;
+
 void setup() {
   // init serial
   Serial.begin(9600);
@@ -17,6 +19,8 @@ void setup() {
 
   // Set ISR
   attachInterrupt(digitalPinToInterrupt(echoPin), isr, FALLING);
+
+  prevDist = 0;
 }
 
 void loop()
@@ -27,6 +31,9 @@ void loop()
   //delay for stability
   delay(10);
 }
+
+
+//--------------------------------------------------
 
 void isr() { //ISR
 
@@ -44,11 +51,14 @@ void isr() { //ISR
     // outlier catching / out of range refusal
     Serial.println("ERROR: OUT OF RANGE");
   } else {
-    if (1 == 1) { // use this if for error catching
+    if (distance + 20 == prevDist) { // use this if for error catching
       // result processing
       Serial.println(distance);
     }
   }
+
+  prevDist = distance;
+  
 }
 
 void ping() {
