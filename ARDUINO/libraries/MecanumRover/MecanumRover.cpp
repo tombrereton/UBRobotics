@@ -3,7 +3,7 @@
 #include <SPI.h>
 #include <HCMAX7219.h>
 
-int brakeTime = 20;
+int brakeTime = 20; //DEF 20
 long startTime;
 bool strafing = false; //Are we strafing diagonally EXPERIMENTAL
 int distanceLimit = 40;

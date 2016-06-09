@@ -9,14 +9,14 @@ int rightArm = 41;
 Servo arm;
 int bias = 30; //Arm will lower less with more bias
 
-int rightAngle = 83;
+int rightAngle = 110;
 int greenButton = 14; //Pin of green button for mode selection
 int buzzerPin = 49; //Pin of buzzer
 MecanumRover rover(3,5,7,9,
                    2,4,6,8,
                    18,19,20,21,
                    0,1,2,3,
-                   50,4,49); //1-4 Direction Pins, 5-8 PWM Pins, 9-12 Interrupt Pins, 13-16 Current Read Pins, 15 Base Speed, 16 Correction Factor, 17 Buzzer Pin 
+                   80,4,49); //1-4 Direction Pins, 5-8 PWM Pins, 9-12 Interrupt Pins, 13-16 Current Read Pins, 15 Base Speed, 16 Correction Factor, 17 Buzzer Pin 
 
 NewPing frontSensor(13, 12, 100);
 NewPing rearSensor(31, 32, 100);
@@ -116,14 +116,14 @@ void rightOpen(){
 }
 
 void eurobotPurple(){
-  rover.strafe(-100);
-  rover.turn(rightAngle);
-  rover.move(400,frontSensor,rearSensor);  
+  rover.move(1000,frontSensor, rearSensor);
+  rover.move(-400,frontSensor, rearSensor);
+  //Seashells  
   rover.turn(-rightAngle);
-  rover.move(500,frontSensor,rearSensor);
-  rover.turn(-rightAngle);
-  rover.move(500,frontSensor,rearSensor);
   leftOpen();
   rightOpen();
+  rover.move(500,frontSensor,rearSensor);
+  rover.turn(-rightAngle);
+  rover.move(500,frontSensor,rearSensor);
 }
 
