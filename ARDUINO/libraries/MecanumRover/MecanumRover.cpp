@@ -3,7 +3,7 @@
 #include <SPI.h>
 #include <HCMAX7219.h>
 
-int brakeTime = 20; //DEF 20
+int brakeTime = 20; //20 nominal //DEF 20
 long startTime;
 bool strafing = false; //Are we strafing diagonally EXPERIMENTAL
 int distanceLimit = 40;
@@ -75,7 +75,7 @@ void MecanumRover::adjustSpeed(int ticks){ //Change the speed of the 4 wheels ac
       //Serial.print(" ");
       //int travelRatio = (abs(ticks) - (averageCount+1)) / abs(ticks); //Percentage difference in travelled distance vs intended
       if (strafing == true){
-        analogWrite(pwmPin[i], adjusted * 2); //Write to PWM pin
+        analogWrite(pwmPin[i], adjusted); //Write to PWM pin
       }
       else {
         analogWrite(pwmPin[i], adjusted); //Write to PWM pin 
@@ -170,7 +170,7 @@ void MecanumRover::testHardware(){
 
   for (int i = 0; i < 4; i ++){
     counter[i] = 0; //Initialise encoder count
-    analogWrite(pwmPin[i], 255); //Max speed
+    analogWrite(pwmPin[i], 5); //slow speed
   }  
   delay(1000);
   Serial.println("HARDWARE TEST (ZERO = ERROR):");
