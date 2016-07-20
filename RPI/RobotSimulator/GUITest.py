@@ -1,7 +1,20 @@
 from Tkinter import *
 from PIL import Image, ImageTk
 import tkFont
+import ConfigParser #to save settings
+import os.path #check file exists
+Config = ConfigParser.ConfigParser()
+filepath = "config.ini"
 #import RPi.GPIO as GPIO
+
+#Init config file
+if not os.path.exists(filepath):
+    print("Config file does not exist, making new one")
+    cfgfile = open(filepath,'w')
+    Config.add_section('Controller')
+else:
+    print("Reading config file")
+    Config.read(filepath)
 
 datum = [0,0] #Zero co-ordinate of the board (bottom right)
 boundsize = [0,0] #Size of boundary
@@ -55,6 +68,14 @@ w2.pack(expand=YES,fill=BOTH)
 #logophoto = ImageTk.PhotoImage(image = image.resize((300-logoPadding*2,(300-logoPadding*2)/aspect))) #convert for ImageTK format, resize proportionally
 #w2.create_image(150,50,image=logophoto)
 
+#load .ini data
+if os.path.exists(filepath):
+    print("Loading")
+    datum = eval(Config.get('Controller','datum'),{},{})
+    arenadimension = eval(Config.get('Controller','boundsize'),{},{}) #Parse to a new array
+    width = arenadimension[0]
+    height = arenadimension[1]
+
 #Datum
 t1 = Label(w2,text="Datum X: ").grid(row=0,column=0)
 e1 = Entry(w2) #DatumX
@@ -73,6 +94,13 @@ t4 = Label(w2,text="Arena width: ").grid(row=4,column=0)
 e4 = Entry(w2) #DatumY
 e4.insert(0,height)
 e4.grid(row=4,column=1)
+
+def saveSettings(thedatum,thebound):
+    cfgfile = open(filepath,'w')
+    Config.set('Controller','datum',thedatum)
+    Config.set('Controller','boundsize',thebound)
+    Config.write(cfgfile)
+    cfgfile.close()
     
 def setArena():
     datum = [int(e1.get()),int(e2.get())]
@@ -86,10 +114,9 @@ def setArena():
     board = w.create_image(width/2,height/2,image = photo);
     datumPoint = drawcircle(w,datum[0],datum[1],datumRadius)
     boundary = w.create_rectangle(datum[0]-boundsize[0],datum[1]-boundsize[1],datum[0],datum[1],outline='red',width=3)
+    saveSettings(datum,boundsize)
     
 setter = Button(w2, text="Set new datum and arena size", command=setArena)
 setter.grid(row=5,column=0)
-
 setArena()
-
 mainloop()
