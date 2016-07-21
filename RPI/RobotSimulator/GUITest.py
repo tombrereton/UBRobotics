@@ -3,6 +3,8 @@ from PIL import Image, ImageTk
 import tkFont
 import ConfigParser #to save settings
 import os.path #check file exists
+from eurobot import *
+
 Config = ConfigParser.ConfigParser()
 filepath = "config.ini"
 #import RPi.GPIO as GPIO
@@ -118,5 +120,5 @@ def setArena():
     
 setter = Button(w2, text="Set new datum and arena size", command=setArena)
 setter.grid(row=5,column=0)
-setArena()
+setArena() #load config
 mainloop()
