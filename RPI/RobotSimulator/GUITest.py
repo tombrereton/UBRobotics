@@ -3,6 +3,7 @@ from PIL import Image, ImageTk
 import tkFont
 import ConfigParser #to save settings
 import os.path #check file exists
+import time
 from eurobot import *
 
 Config = ConfigParser.ConfigParser()
@@ -28,7 +29,6 @@ win.title("Robot Simulator")
 win.geometry('800x600')
 
 myFont = tkFont.Font(family = 'Helvetica', size = 12, weight = 'bold')
-
 w = Canvas(win) #canvas module to hold images, shapes
 w.pack(expand=YES,fill=BOTH)
 
@@ -59,7 +59,7 @@ exitButton = Button(win, text = "Exit", font = myFont, command = exitProgram, he
 
 #Controller Window
 win2 = Toplevel() #Create a Tkinter window object for controller TOPLEVEL when you have more than one
-win2.title("Controller")
+win2.title("Global Settings")
 win2.geometry('300x400')
 w2 = Canvas(win2,bg="white")
 w2.pack(expand=YES,fill=BOTH)
@@ -113,7 +113,7 @@ def setArena():
     #now redraw datum and boundary
     w.delete("all") #delete all images from previous setting
     height, width = image.size
-    board = w.create_image(width/2,height/2,image = photo);
+    board = w.create_image(width/2,height/2,image = photo)
     datumPoint = drawcircle(w,datum[0],datum[1],datumRadius)
     boundary = w.create_rectangle(datum[0]-boundsize[0],datum[1]-boundsize[1],datum[0],datum[1],outline='red',width=3)
     saveSettings(datum,boundsize)
@@ -121,4 +121,46 @@ def setArena():
 setter = Button(w2, text="Set new datum and arena size", command=setArena)
 setter.grid(row=5,column=0)
 setArena() #load config
+
+#Tests
+#test = Eurobot(60,50,[400,400],-90,w)
+#dada = w.create_image(test.position[0],test.position[1], image = test.photo)
+#test.rotate(45)
+#test.translate(100)
+#dada = w.create_image(test.position[0],test.position[1], image = test.photo)
+
+win3 = Toplevel() #Create a Tkinter window object for controller TOPLEVEL when you have more than one
+win3.title("Primary Robot Controller")
+win3.geometry('300x400')
+w3 = Canvas(win3,bg="white")
+w3.pack(expand=YES,fill=BOTH)
+#Starting vector
+t5 = Label(w3,text="Starting X: ").grid(row=0,column=0)
+e5 = Entry(w3) 
+e5.insert(0,0)
+e5.grid(row=0,column=1)
+t6 = Label(w3,text="Starting Y: ").grid(row=1,column=0)
+e6 = Entry(w3)
+e6.insert(0,0)
+e6.grid(row=1,column=1)
+t7 = Label(w3,text="Starting Heading (degrees): ").grid(row=2,column=0)
+e7 = Entry(w3)
+e7.insert(0,0)
+e7.grid(row=2,column=1)
+t8 = Label(w3,text="Track: ").grid(row=3,column=0)
+e8 = Entry(w3)
+e8.insert(0,0)
+e8.grid(row=3,column=1)
+t9 = Label(w3,text="Wheel diameter: ").grid(row=4,column=0)
+e9 = Entry(w3)
+e9.insert(0,0)
+e9.grid(row=4,column=1)
+
+def setPrimary():
+    primaryRobot = Eurobot(int(e8.get()),int(e9.get()),[int(e5.get()),int(e6.get())],int(e7.get()),w)
+    primaryRobot.translate(100)
+    
+activate1 = Button(w3, text="Build primary robot", command=lambda: setPrimary())
+activate1.grid(row=5,column=0)
+
 mainloop()
