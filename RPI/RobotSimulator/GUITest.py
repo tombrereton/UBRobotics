@@ -5,6 +5,7 @@ import ConfigParser #to save settings
 import os.path #check file exists
 import time
 from eurobot import *
+global primaryRobot
 
 Config = ConfigParser.ConfigParser()
 filepath = "config.ini"
@@ -157,10 +158,24 @@ e9.insert(0,0)
 e9.grid(row=4,column=1)
 
 def setPrimary():
+    global primaryRobot
     primaryRobot = Eurobot(int(e8.get()),int(e9.get()),[int(e5.get()),int(e6.get())],int(e7.get()),w)
-    primaryRobot.translate(100)
-    
+    #primaryRobot.translate(100)
+
+Label(w3,text="", bg="white").grid(row=5,column=0)
 activate1 = Button(w3, text="Build primary robot", command=lambda: setPrimary())
-activate1.grid(row=5,column=0)
+activate1.grid(row=6,column=0)
+
+def flipPrimary():
+    global primaryRobot
+    try:
+        primaryRobot
+    except NameError:
+        tkMessageBox.showerror('Unable to flip robot!','Robot has not been built!')
+    else:
+        print "Flipped primary robot"
+    
+flip1 = Button(w3, text="Flip sides", command=flipPrimary)
+flip1.grid(row=6,column=1)
 
 mainloop()
