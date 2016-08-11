@@ -123,10 +123,6 @@ def setArena():
     board = w.create_image(width/2,height/2,image = photo) #draw board picture
     datumPoint = drawcircle(w,datum[0],datum[1],datumRadius) #draw datum point as circle
     boundary = w.create_rectangle(datum[0]-boundsize[0],datum[1]-boundsize[1],datum[0],datum[1],outline='red',width=1) #draw arena boundaries
-    saveSettings(datum,boundsize) #function above
-    
-setter = Button(w2, text="Set new datum and arena size", command=setArena) #button to set new arena sizes
-setter.grid(row=5,column=0)
 
 def setRecord(): #Begin/Finish path recording
     global isRecording
@@ -266,5 +262,64 @@ def anglemeasure(event):
 w.bind("<Button 1>",printcoords)
 w.bind("<Button 3>",linecoords)
 w.bind("<Button 2>",anglemeasure)
+
+def saveSettings(): #Save all settings here
+    cfgfile = open(filepath,'w')
+    
+    try:        
+        Config.add_section('Arena')
+        Config.add_section('Primary')
+    except:
+        print "Config file already exists."
+    
+    result = tkMessageBox.askquestion("Save configuration?","Are you sure you want to save? Previous config file will be overwritten.", icon='warning')
+    if result == 'yes':
+        Config.set('Arena','datumx',e1.get())
+        Config.set('Arena','datumy',e2.get())
+        Config.set('Arena','length',e3.get())
+        Config.set('Arena','width',e4.get())
+        Config.set('Primary','startx',e5.get())
+        Config.set('Primary','starty',e6.get())
+        Config.set('Primary','heading',e7.get())
+        Config.set('Primary','track',e8.get())
+        Config.set('Primary','diameter',e9.get())
+        Config.write(cfgfile)
+        cfgfile.close()
+        print "Config saved"
+    else:
+        print "Save failed."
+
+def loadSettings(): #Load all settings here
+    try:
+        Config.read(filepath)
+        result = tkMessageBox.askquestion("Load configuration?","Are you sure you want to load? Any modifications will be deleted.", icon='warning')
+        if result == 'yes':
+            print "Config loaded"
+            e1.delete(0, END)
+            e1.insert(0, Config.getint('Arena','datumx'))
+            e2.delete(0, END)
+            e2.insert(0, Config.getint('Arena','datumy'))
+            e3.delete(0, END)
+            e3.insert(0, Config.getint('Arena','length'))
+            e4.delete(0, END)
+            e4.insert(0, Config.getint('Arena','width'))
+            e5.delete(0, END)
+            e5.insert(0, Config.getint('Primary','startx'))
+            e6.delete(0, END)
+            e6.insert(0, Config.getint('Primary','starty'))
+            e7.delete(0, END)
+            e7.insert(0, Config.getint('Primary','heading'))
+            e8.delete(0, END)
+            e8.insert(0, Config.getint('Primary','track'))
+            e9.delete(0, END)
+            e9.insert(0, Config.getint('Primary','diameter'))
+        else:
+            print "Load failed."
+    except:
+        tkMessageBox.showerror("Error!","Config file doesn't exist. Please save before loading.")
+
+Button(w2, text="Update arena", command=setArena).grid(row=8,column=0)
+Button(w2, text="Save configuration", command=saveSettings).grid(row=9,column=0)
+Button(w2, text="Load configuration", command=loadSettings).grid(row=9,column=1)
 
 mainloop()
