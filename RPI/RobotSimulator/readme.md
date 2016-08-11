@@ -2,7 +2,9 @@
 
 ##Features
 Create and place a two-wheeled robot 
+
 Measure arena distances and angles in centimeters
+
 Save/Load configurations
 
 ###1: PLACING A ROBOT
