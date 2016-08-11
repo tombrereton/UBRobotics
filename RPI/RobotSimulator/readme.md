@@ -1,11 +1,11 @@
-Eurobot Robot Simulator by UBRobotics
+#Eurobot Robot Simulator by UBRobotics
 
-Features
+##Features
 Create and place a two-wheeled robot 
 Measure arena distances and angles in centimeters
 Save/Load configurations
 
-1: PLACING A ROBOT
+###1: PLACING A ROBOT
 
 Fill in the 'Primary Robot Controller' window with the required data. Heading is the angle of the robot relative to North on the monitor. Clockwise is negative.
 Track is the distance between the two wheels (similar to gauge in trains).
@@ -14,7 +14,7 @@ Once the information is filled, press 'Build Primary Robot' to place the robot o
 
 You can press 'Flip sides' to flip the robot between the two starting areas, symmetrical to each other down the middle of the length of the arena.
 
-2: SET UP THE ARENA
+###2: SET UP THE ARENA
 
 First of all, the arena image should be called 'board.jpg' the program will rotate the image to fit in landscape.
 
@@ -24,7 +24,7 @@ Should be done first. Under the 'Global Settings' window, adjust datum position 
 
 Then adjust the length and width such that the red rectangle is in line with the inside of the arena boundaries. The rectangle will represent the 2 x 3 meter arena and is a reference to convert from pixels to centimeters.
 
-3: MEASUREMENTS ON THE ARENA
+###3: MEASUREMENTS ON THE ARENA
 
 Left click on the arena to give the co-ordinates relative to the datum point.
 
@@ -34,7 +34,7 @@ Left click, right click, then middle click on three different points of the aren
 
 All measurements are output to the shell console.
 
-4: SAVING AND LOADING
+###4: SAVING AND LOADING
 
 Robot and arena data are saved by the 'Save configuration' button.
 
