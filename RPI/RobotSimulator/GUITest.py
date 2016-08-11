@@ -200,8 +200,7 @@ flip1.grid(row=6,column=1)
 Label(w3,text="", bg="white").grid(row=7,column=0) #blank space
 
 #Some reason unable to animate robot unless it is done in the same function that created it
-moveButton = Button(w3, text="Move to co-ordinate")
-moveButton.grid(row=8,column=0)
+#Button(w3, text="Move to co-ordinate").grid(row=8,column=0)
 
 def printcoords(event):
     global targetPoint,pixeltoCM,datum,firstPoint,targetPoint2,measureLine,targetPoint3, reddot
