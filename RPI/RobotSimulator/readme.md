@@ -1,6 +1,6 @@
 Eurobot Robot Simulator by UBRobotics
 
-~~Features~~
+Features
 Create and place a two-wheeled robot 
 Measure arena distances and angles in centimeters
 Save/Load configurations
