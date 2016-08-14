@@ -22,7 +22,7 @@ First of all, the arena image should be called 'board.jpg' the program will rota
 
 Make sure when the MAIN WINDOW loads that the arena is in landscape, with the audience-side facing up on the monitor. If not, adjust with a photo editor.
 
-Should be done first. Under the 'Global Settings' window, adjust datum position until the LARGE BLUE DOT aligns with the bottom right corner of the arena (within the walls).
+Should be done first. Under the 'Global Settings' window, adjust datum position until the LARGE DOT aligns with the bottom right corner of the arena (within the walls).
 
 Then adjust the length and width such that the red rectangle is in line with the inside of the arena boundaries. The rectangle will represent the 2 x 3 meter arena and is a reference to convert from pixels to centimeters.
 
