@@ -9,6 +9,7 @@ import time
 import numpy
 from eurobot import *
 global primaryRobot, datum, boundsize, firstPoint, measureLine, isRecording, angleLine, secondPoint, pixeltoCM, arenaImageScale #make global so all functions can access it
+global datumColour,boundColour,boundThickness,dotsColour, dotsRadius
 
 # SET PROPERTIES HERE ####################################
 
@@ -20,6 +21,16 @@ filepath = "config.ini" #Filename of configuration file
 boardFileName = "board.jpg" #Filename of board image (must be portrait orientation)
 scaletoArena = True #Scale main window to arena image size
 arenaImageScale = 1.0 #Scale of arena image where 1.0 is original size
+arenarotation = 90 #Amount to rotate original arena picture (degrees) DEFAULT is +90 for 90 deg anti-clockwise
+autoLoad = True #Load configuration file on window load
+
+#Visual Properties
+
+dotsColour = ["red","blue","green"] #Colours of the three measurement dots
+dotsRadius = 5 #Size of the measurement dots
+datumColour = "pink" #Colour of datum point
+boundColour = "red" #Colour of the arena boundary marker
+boundThickness = 2 #Thickness of arena boundary marker
 
 # END PROPERTIES #########################################
 
@@ -40,19 +51,19 @@ win.geometry(str(mainWindow[0])+"x"+str(mainWindow[1]))
 
 myFont = tkFont.Font(family = 'Helvetica', size = 12, weight = 'bold')
 w = Canvas(win) #canvas module to hold images, shapes
-
 w.pack(expand=YES,fill=BOTH)
+
 measureLine = w.create_line(0,0,0,0)
 angleLine = w.create_line(0,0,0,0)
 
 image = Image.open(boardFileName) #import board image
 width, height = image.size #Pass the size to variables
 image = image.resize((int(width*arenaImageScale), int(height*arenaImageScale)), Image.ANTIALIAS)
-photo = ImageTk.PhotoImage(image.rotate(90)) #convert for ImageTK format 90deg
+photo = ImageTk.PhotoImage(image.rotate(arenarotation)) #convert for ImageTK format 90deg
 height, width = image.size #inverted order of height width as the image is rotated 90deg
 board = w.create_image(width/2,height/2,image = photo); #add image object to main canvas 'w'
 
-if scaletoArena:
+if scaletoArena: #If the window is set to scale to the size of the arena
 	win.geometry(str(width)+"x"+str(height))
 
 datum = [width,height] #store datum and arena boundary sizes to variable
@@ -101,7 +112,7 @@ Label(w2,bg="white",text="LMB to place position marker, RMB to place distance ma
 Label(w2,bg="white",text="Place a third point with MMB after placing the two markers to measure an angle.").grid(row=7,column=0,columnspan=2)
     
 def setArena():
-    global datum, boundsize, pixeltoCM
+    global datumColour,boundColour,boundThickness,datum, boundsize, pixeltoCM
     datum = [eval(e1.get()),eval(e2.get())] #get datum and boundary size from text input fields above
     boundsize = [eval(e3.get()),eval(e4.get())] #Evaluate string to numbers
     pixeltoCM[0] = float(e3.get()) / 300 #Horizontal length is 300 cm, so work out the ratio of pixel to cm using the arena width and length taken from boundsize
@@ -111,8 +122,8 @@ def setArena():
     w.delete("all") #delete all images from previous setting
     height, width = image.size
     board = w.create_image(width/2,height/2,image = photo); #add image object to main canvas 'w'
-    datumPoint = drawcircleradius(w,datum[0],datum[1],datumRadius,'pink') #draw datum point as circle
-    boundary = w.create_rectangle(datum[0]-boundsize[0],datum[1]-boundsize[1],datum[0],datum[1],outline='red',width=1) #draw arena boundaries
+    datumPoint = drawcircleradius(w,datum[0],datum[1],datumRadius,datumColour) #draw datum point as circle
+    boundary = w.create_rectangle(datum[0]-boundsize[0],datum[1]-boundsize[1],datum[0],datum[1],outline=boundColour,width=boundThickness) #draw arena boundaries
 
 def setRecord(): #Begin/Finish path recording
     global isRecording
@@ -180,7 +191,7 @@ Label(w3,text="", bg="white").grid(row=7,column=0) #blank space
 #Button(w3, text="Move to co-ordinate").grid(row=8,column=0)
 
 def printcoords(event):
-    global targetPoint,pixeltoCM,datum,firstPoint,targetPoint2,measureLine,targetPoint3, reddot
+    global targetPoint,pixeltoCM,datum,firstPoint,targetPoint2,measureLine,targetPoint3, reddot, dotsColour, dotsRadius
 
     if isRecording == False:
         reddot = False
@@ -193,10 +204,10 @@ def printcoords(event):
         print("Clicked co-ordinate (X,Y):")
         print(int(-(event.x - datum[0])/pixeltoCM[0]),int(-(event.y - datum[1])/pixeltoCM[1]))
         print;
-        targetPoint = drawcircleradius(w,event.x,event.y,5,'blue')
+        targetPoint = drawcircleradius(w,event.x,event.y,dotsRadius,dotsColour[0])
 
 def linecoords(event):
-    global firstPoint,pixeltoCM,datum,targetPoint2,measureLine,isRecording,targetPoint3,secondPoint,reddot,linevector
+    global dotsRadius,firstPoint,pixeltoCM,datum,targetPoint2,dotsColour,measureLine,isRecording,targetPoint3,secondPoint,reddot,linevector
     
     if isRecording == False:
         reddot = True
@@ -215,15 +226,15 @@ def linecoords(event):
         #UNCOMMENT BELOW FOR DISTANCE MEASUREMENT MAGNITUDE
         print round(numpy.linalg.norm(magnitude),2)
         print;
-        targetPoint2 = drawcircleradius(w,event.x,event.y,5,'red')
+        targetPoint2 = drawcircleradius(w,event.x,event.y,dotsRadius,dotsColour[1])
 
 def anglemeasure(event):
-    global targetPoint3, angleLine, secondPoint, isRecording, reddot, linevector
+    global targetPoint3, dotsRadius,angleLine, secondPoint, isRecording, reddot, linevector, dotsColour
 
     if isRecording == False and reddot == True:
         w.delete(targetPoint3.thing)
         w.delete(angleLine)
-        targetPoint3 = drawcircleradius(w,event.x,event.y,5,'green')
+        targetPoint3 = drawcircleradius(w,event.x,event.y,dotsRadius,dotsColour[2])
         angleLine = w.create_line(event.x,event.y,secondPoint[0],secondPoint[1])
         secondvector = [event.x - secondPoint[0],event.y - secondPoint[1]]
 
@@ -231,7 +242,7 @@ def anglemeasure(event):
         dot = numpy.vdot(linevector,secondvector)
         costheta = dot/numpy.linalg.norm(linevector)/numpy.linalg.norm(secondvector)
         theta = math.acos(costheta)
-        print "Angle BlueRedGreen:"
+        print "Angle of Triangle:"
         print str(180-int(math.degrees(theta))) + "deg"
         print
         
@@ -297,5 +308,10 @@ def loadSettings(): #Load all settings here
 Button(w2, text="Update arena", command=setArena).grid(row=8,column=0)
 Button(w2, text="Save configuration", command=saveSettings).grid(row=9,column=0)
 Button(w2, text="Load configuration", command=loadSettings).grid(row=9,column=1)
+
+if autoLoad: #Do you want to load config file on window load?
+	loadSettings()
+	setArena()
+	setPrimary()
 
 mainloop()
