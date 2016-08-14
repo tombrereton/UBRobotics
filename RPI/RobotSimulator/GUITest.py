@@ -10,47 +10,46 @@ import numpy
 from eurobot import *
 global primaryRobot, datum, boundsize, firstPoint, measureLine, isRecording, angleLine, secondPoint, pixeltoCM #make global so all functions can access it
 
+# SET PROPERTIES HERE ####################################
+
+datumRadius = 10 #radius of datum marker (circle)
+mainWindow = [800,600] #Size of Main Window (The one that shows the arena)
+primaryWindow = [350,400] #Size of Primary Robot Controller Window
+arenaWindow = [500,400] #Size of Arena Controller Window
+filepath = "config.ini" #Filename of configuration file
+boardFileName = "board.jpg" #Filename of board image (must be portrait orientation)
+scaletoArena = True #Scale main window to arena image size
+# END PROPERTIES #########################################
+
 isRecording = False #Path recording is initially off
 
 Config = ConfigParser.ConfigParser() #init object for storing .ini config files
-filepath = "config.ini"
 #import RPi.GPIO as GPIO
 
 datum = [0,0] #Zero co-ordinate of the board (bottom right)
 boundsize = [0,0] #Size of boundary
-datumRadius = 10 #radius of datum marker (circle)
-logoPadding = 20 #horizontal padding around controller logo
 pixeltoCM = [0,0] #Used to calibrate pixels to actual distance in cm. Divide a number by this to convert to cm, multiply for pixels.
 firstPoint = [0,0] #Co-ordinate of first point of measuring line
 secondPoint = [0,0]
 
 win = Tk() #Create a Tkinter window object for ARENA
 win.title("Robot Simulator")
-win.geometry('800x600')
+win.geometry(str(mainWindow[0])+"x"+str(mainWindow[1]))
 
 myFont = tkFont.Font(family = 'Helvetica', size = 12, weight = 'bold')
 w = Canvas(win) #canvas module to hold images, shapes
-
-#hbar=Scrollbar(win,orient=HORIZONTAL)
-#hbar.pack(side=BOTTOM,fill=X)
-#hbar.config(command=w.xview)
-#vbar=Scrollbar(win,orient=VERTICAL)
-#vbar.pack(side=RIGHT,fill=Y)
-#vbar.config(command=w.yview)
-
-#w.config(xscrollcommand=hbar.set,yscrollcommand=vbar.set)
 
 w.pack(expand=YES,fill=BOTH)
 measureLine = w.create_line(0,0,0,0)
 angleLine = w.create_line(0,0,0,0)
 
-image = Image.open("board.jpg") #import board image
+image = Image.open(boardFileName) #import board image
 photo = ImageTk.PhotoImage(image.rotate(90)) #convert for ImageTK format 90deg
 height, width = image.size #inverted order of height width as the image is rotated 90deg
 board = w.create_image(width/2,height/2,image = photo); #add image object to main canvas 'w'
-win.geometry(str(width)+"x"+str(height))
-#print(width)
-#print(height)
+
+if scaletoArena:
+	win.geometry(str(width)+"x"+str(height))
 
 datum = [width,height] #store datum and arena boundary sizes to variable
 boundsize = [width,height]
@@ -65,18 +64,18 @@ targetPoint2 = drawcircleradius(w,0,0,0,'blue')
 targetPoint3 = drawcircleradius(w,0,0,0,'blue')
 
 #Mark datum
-datumPoint = drawcircleradius(w,width,height,datumRadius,'blue')
-#mark boundary walls
+datumPoint = drawcircleradius(w,width,height,datumRadius,'pink')
+#Mark boundary walls
 boundary = w.create_rectangle(0,0,width,height,outline='red',width=3)
 
 #Controller Window
 win2 = Toplevel() #Create a Tkinter window object for controller TOPLEVEL when you have more than one
 win2.title("Global Settings")
-win2.geometry('500x400')
+win2.geometry(str(arenaWindow[0])+"x"+str(arenaWindow[1]))
 w2 = Canvas(win2,bg="white")
 w2.pack(expand=YES,fill=BOTH) #let it fill the entire window
 
-#Datum text label and input fields, load the input fields with .ini data if exists
+#Datum text label and input fields
 t1 = Label(w2,text="Datum X: ").grid(row=0,column=0)
 e1 = Entry(w2) #DatumX
 e1.insert(0,datum[0]) #set input field
@@ -100,18 +99,15 @@ Label(w2,bg="white",text="Place a third point with MMB after placing the two mar
 def setArena():
     global datum, boundsize, pixeltoCM
     datum = [eval(e1.get()),eval(e2.get())] #get datum and boundary size from text input fields above
-    boundsize = [eval(e3.get()),eval(e4.get())]
-    pixeltoCM[0] = float(e3.get()) / 300 #Horizontal length is 300 cm
+    boundsize = [eval(e3.get()),eval(e4.get())] #Evaluate string to numbers
+    pixeltoCM[0] = float(e3.get()) / 300 #Horizontal length is 300 cm, so work out the ratio of pixel to cm using the arena width and length taken from boundsize
     pixeltoCM[1] = float(e4.get()) / 200 #Vertical length is 200 cm
     print("Settings updated.")
-    #print pixeltoCM
-    #print datum
-    #print boundsize
     #now redraw datum and boundary
     w.delete("all") #delete all images from previous setting
     height, width = image.size
     board = w.create_image(width/2,height/2,image = photo) #draw board picture
-    datumPoint = drawcircleradius(w,datum[0],datum[1],datumRadius,'blue') #draw datum point as circle
+    datumPoint = drawcircleradius(w,datum[0],datum[1],datumRadius,'pink') #draw datum point as circle
     boundary = w.create_rectangle(datum[0]-boundsize[0],datum[1]-boundsize[1],datum[0],datum[1],outline='red',width=1) #draw arena boundaries
 
 def setRecord(): #Begin/Finish path recording
@@ -124,20 +120,14 @@ def setRecord(): #Begin/Finish path recording
 
     isRecording = not isRecording 
 
-setRecord = Button(w2, text="Toggle Path Recording", command=setRecord) #button to draw robot path by clicking co-ordinates
-setRecord.grid(row=5,column=1)
-setArena() #auto-load config when program boots
+#setRecord = Button(w2, text="Toggle Path Recording", command=setRecord) #button to draw robot path by clicking co-ordinates
+#setRecord.grid(row=5,column=1)
 
-#Tests
-#test = Eurobot(60,50,[400,400],-90,w)
-#dada = w.create_image(test.position[0],test.position[1], image = test.photo)
-#test.rotate(45)
-#test.translate(100)
-#dada = w.create_image(test.position[0],test.position[1], image = test.photo)
+setArena() #auto-load config when program boots
 
 win3 = Toplevel() #Create a Tkinter window object for controller TOPLEVEL when you have more than one
 win3.title("Primary Robot Controller") #set all primary robot parameters
-win3.geometry('350x400')
+win3.geometry(str(primaryWindow[0])+"x"+str(primaryWindow[1]))
 w3 = Canvas(win3,bg="white")
 w3.pack(expand=YES,fill=BOTH)
 #Starting vector
@@ -165,7 +155,6 @@ e9.grid(row=4,column=1)
 def setPrimary(): #function to 'build' primary robot according to text input
     global primaryRobot, pixeltoCM #make sure the instance of class is created at the global level for full access
     primaryRobot = Eurobot(int(eval(e8.get())*pixeltoCM[1]),int(eval(e9.get())*pixeltoCM[0]),[int(e5.get()),int(e6.get())],int(e7.get()),w) #set parameters according to input fields
-    #primaryRobot.abstranslate([100,100])
 
 Label(w3,text="", bg="white").grid(row=5,column=0) #blank space
 activate1 = Button(w3, text="Build primary robot", command=setPrimary) #button to set primary robot parameters
