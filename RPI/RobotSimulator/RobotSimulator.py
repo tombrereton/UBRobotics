@@ -8,7 +8,7 @@ import os.path #check file exists
 import time
 import numpy
 from eurobot import *
-global primaryRobot, datum, boundsize, firstPoint, measureLine, isRecording, angleLine, secondPoint, pixeltoCM #make global so all functions can access it
+global primaryRobot, datum, boundsize, firstPoint, measureLine, isRecording, angleLine, secondPoint, pixeltoCM, arenaImageScale #make global so all functions can access it
 
 # SET PROPERTIES HERE ####################################
 
@@ -19,6 +19,8 @@ arenaWindow = [500,400] #Size of Arena Controller Window
 filepath = "config.ini" #Filename of configuration file
 boardFileName = "board.jpg" #Filename of board image (must be portrait orientation)
 scaletoArena = True #Scale main window to arena image size
+arenaImageScale = 1.0 #Scale of arena image where 1.0 is original size
+
 # END PROPERTIES #########################################
 
 isRecording = False #Path recording is initially off
@@ -44,6 +46,8 @@ measureLine = w.create_line(0,0,0,0)
 angleLine = w.create_line(0,0,0,0)
 
 image = Image.open(boardFileName) #import board image
+width, height = image.size #Pass the size to variables
+image = image.resize((int(width*arenaImageScale), int(height*arenaImageScale)), Image.ANTIALIAS)
 photo = ImageTk.PhotoImage(image.rotate(90)) #convert for ImageTK format 90deg
 height, width = image.size #inverted order of height width as the image is rotated 90deg
 board = w.create_image(width/2,height/2,image = photo); #add image object to main canvas 'w'
@@ -106,7 +110,7 @@ def setArena():
     #now redraw datum and boundary
     w.delete("all") #delete all images from previous setting
     height, width = image.size
-    board = w.create_image(width/2,height/2,image = photo) #draw board picture
+    board = w.create_image(width/2,height/2,image = photo); #add image object to main canvas 'w'
     datumPoint = drawcircleradius(w,datum[0],datum[1],datumRadius,'pink') #draw datum point as circle
     boundary = w.create_rectangle(datum[0]-boundsize[0],datum[1]-boundsize[1],datum[0],datum[1],outline='red',width=1) #draw arena boundaries
 
@@ -161,21 +165,15 @@ activate1 = Button(w3, text="Build primary robot", command=setPrimary) #button t
 activate1.grid(row=6,column=0)
 
 def flipPrimary(): #flip primary robot to other side of arena
-    global primaryRobot
-    primaryRobot = Eurobot(primaryRobot.track,primaryRobot.diameter,primaryRobot.position,primaryRobot.angle,w) #must initialise again to retrieve the instance (needs fix)
+	global primaryRobot #Get global instance of robot
     
-    try:
-        primaryRobot
-    except NameError:
-        tkMessageBox.showerror('Unable to flip robot!','Robot has not been built!')
-    else:
-        primaryRobot.rotate(180)
-        print "Flipped primary robot"
-        reflect = datum[0] - boundsize[0]/2 #X co-ordinate of line of reflection
-        primaryRobot.abstranslate([2*(reflect - primaryRobot.position[0]),0])
-    
-flip1 = Button(w3, text="Flip sides", command=flipPrimary)
-flip1.grid(row=6,column=1)
+	reflect = datum[0] - boundsize[0]/2 #X co-ordinate of line of reflection
+	translation = reflect - primaryRobot.position[0] #X displacement of robot from line of reflection
+	
+	primaryRobot = Eurobot(primaryRobot.track,primaryRobot.diameter,[primaryRobot.position[0] + 2*translation, primaryRobot.position[1]],primaryRobot.angle+180,w) #Make new instance of robot translated by twice the displacement and rotated 180
+   
+flip1 = Button(w3, text="Flip sides", command=flipPrimary) #Button for it
+flip1.grid(row=6,column=1) #Assign position
 Label(w3,text="", bg="white").grid(row=7,column=0) #blank space
 
 #Some reason unable to animate robot unless it is done in the same function that created it
