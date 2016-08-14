@@ -8,6 +8,6 @@ width = 501
 startx = 750
 starty = 400
 heading = 90
-track = 20
-diameter = 20
+track = 40
+diameter = 50
 

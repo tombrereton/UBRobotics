@@ -8,7 +8,7 @@ import os.path #check file exists
 import time
 import numpy
 from eurobot import *
-global primaryRobot, datum, boundsize, firstPoint, measureLine, isRecording, angleLine, secondPoint #make global so all functions can access it
+global primaryRobot, datum, boundsize, firstPoint, measureLine, isRecording, angleLine, secondPoint, pixeltoCM #make global so all functions can access it
 
 isRecording = False #Path recording is initially off
 
@@ -20,7 +20,7 @@ datum = [0,0] #Zero co-ordinate of the board (bottom right)
 boundsize = [0,0] #Size of boundary
 datumRadius = 10 #radius of datum marker (circle)
 logoPadding = 20 #horizontal padding around controller logo
-pixeltoCM = [0,0] #Used to calibrate pixels to actual distance in cm
+pixeltoCM = [0,0] #Used to calibrate pixels to actual distance in cm. Divide a number by this to convert to cm, multiply for pixels.
 firstPoint = [0,0] #Co-ordinate of first point of measuring line
 secondPoint = [0,0]
 
@@ -101,11 +101,8 @@ t4 = Label(w2,text="Arena width: ").grid(row=4,column=0)
 e4 = Entry(w2) #DatumY
 e4.insert(0,height)
 e4.grid(row=4,column=1)
-instructions = Label(w2,bg="white",text="LMB to place position marker, RMB to place distance marker.").grid(row=6,column=0,columnspan=2)
-instructions = Label(w2,bg="white",text="Place a third point with MMB after placing the two markers to measure an angle.").grid(row=7,column=0,columnspan=2)
-
-def saveSettings(thedatum,thebound): #autosave to .ini
-    return
+Label(w2,bg="white",text="LMB to place position marker, RMB to place distance marker.").grid(row=6,column=0,columnspan=2)
+Label(w2,bg="white",text="Place a third point with MMB after placing the two markers to measure an angle.").grid(row=7,column=0,columnspan=2)
     
 def setArena():
     global datum, boundsize, pixeltoCM
@@ -147,7 +144,7 @@ setArena() #auto-load config when program boots
 
 win3 = Toplevel() #Create a Tkinter window object for controller TOPLEVEL when you have more than one
 win3.title("Primary Robot Controller") #set all primary robot parameters
-win3.geometry('300x400')
+win3.geometry('350x400')
 w3 = Canvas(win3,bg="white")
 w3.pack(expand=YES,fill=BOTH)
 #Starting vector
@@ -163,18 +160,18 @@ t7 = Label(w3,text="Starting Heading (degrees): ").grid(row=2,column=0)
 e7 = Entry(w3)
 e7.insert(0,0)
 e7.grid(row=2,column=1)
-t8 = Label(w3,text="Track: ").grid(row=3,column=0)
+t8 = Label(w3,text="Track (centimeters): ").grid(row=3,column=0)
 e8 = Entry(w3)
 e8.insert(0,0)
 e8.grid(row=3,column=1)
-t9 = Label(w3,text="Wheel diameter: ").grid(row=4,column=0)
+t9 = Label(w3,text="Wheel diameter (centimeters): ").grid(row=4,column=0)
 e9 = Entry(w3)
 e9.insert(0,0)
 e9.grid(row=4,column=1)
 
 def setPrimary(): #function to 'build' primary robot according to text input
-    global primaryRobot #make sure the instance of class is created at the global level for full access
-    primaryRobot = Eurobot(int(e8.get()),int(e9.get()),[int(e5.get()),int(e6.get())],int(e7.get()),w) #set parameters according to input fields
+    global primaryRobot, pixeltoCM #make sure the instance of class is created at the global level for full access
+    primaryRobot = Eurobot(int(eval(e8.get())*pixeltoCM[1]),int(eval(e9.get())*pixeltoCM[0]),[int(e5.get()),int(e6.get())],int(e7.get()),w) #set parameters according to input fields
     #primaryRobot.abstranslate([100,100])
 
 Label(w3,text="", bg="white").grid(row=5,column=0) #blank space
