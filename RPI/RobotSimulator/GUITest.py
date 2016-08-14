@@ -55,24 +55,17 @@ win.geometry(str(width)+"x"+str(height))
 datum = [width,height] #store datum and arena boundary sizes to variable
 boundsize = [width,height]
 
-def drawcircle(canv,x,y,rad): #use this to draw circles giving the CANVAS, X & Y of the centre and the radius
-    global targetPoint
-    targetPoint = canv.create_oval(x-rad,y-rad,x+rad,y+rad,width=0,fill='blue')
-    
-def drawcirclered(canv,x,y,rad): #use this to draw circles giving the CANVAS, X & Y of the centre and the radius
-    global targetPoint2
-    targetPoint2 = canv.create_oval(x-rad,y-rad,x+rad,y+rad,width=0,fill='red')
+class drawcircleradius:
+	def __init__(self,canv,x,y,rad,colour):
+		self.thing = canv.create_oval(x-rad,y-rad,x+rad,y+rad,width=0,fill=colour)
 
-def drawcirclegreen(canv,x,y,rad): #use this to draw circles giving the CANVAS, X & Y of the centre and the radius
-    global targetPoint3
-    targetPoint3 = canv.create_oval(x-rad,y-rad,x+rad,y+rad,width=0,fill='green')
-
-
-drawcirclered(w,0,0,0)
-drawcirclegreen(w,0,0,0)
+#Initialise the measurement markers 
+targetPoint = drawcircleradius(w,0,0,0,'blue')
+targetPoint2 = drawcircleradius(w,0,0,0,'blue')
+targetPoint3 = drawcircleradius(w,0,0,0,'blue')
 
 #Mark datum
-datumPoint = drawcircle(w,width,height,datumRadius)
+datumPoint = drawcircleradius(w,width,height,datumRadius,'blue')
 #mark boundary walls
 boundary = w.create_rectangle(0,0,width,height,outline='red',width=3)
 
@@ -118,7 +111,7 @@ def setArena():
     w.delete("all") #delete all images from previous setting
     height, width = image.size
     board = w.create_image(width/2,height/2,image = photo) #draw board picture
-    datumPoint = drawcircle(w,datum[0],datum[1],datumRadius) #draw datum point as circle
+    datumPoint = drawcircleradius(w,datum[0],datum[1],datumRadius,'blue') #draw datum point as circle
     boundary = w.create_rectangle(datum[0]-boundsize[0],datum[1]-boundsize[1],datum[0],datum[1],outline='red',width=1) #draw arena boundaries
 
 def setRecord(): #Begin/Finish path recording
@@ -205,15 +198,15 @@ def printcoords(event):
     if isRecording == False:
         reddot = False
         firstPoint = [event.x,event.y]
-        w.delete(targetPoint)
-        w.delete(targetPoint2)
-        w.delete(targetPoint3)
+        w.delete(targetPoint.thing)
+        w.delete(targetPoint2.thing)
+        w.delete(targetPoint3.thing)
         w.delete(measureLine)
         w.delete(angleLine)
         print("Clicked co-ordinate (X,Y):")
         print(int(-(event.x - datum[0])/pixeltoCM[0]),int(-(event.y - datum[1])/pixeltoCM[1]))
         print;
-        drawcircle(w,event.x,event.y,5)
+        targetPoint = drawcircleradius(w,event.x,event.y,5,'blue')
 
 def linecoords(event):
     global firstPoint,pixeltoCM,datum,targetPoint2,measureLine,isRecording,targetPoint3,secondPoint,reddot,linevector
@@ -221,8 +214,8 @@ def linecoords(event):
     if isRecording == False:
         reddot = True
         secondPoint = [event.x,event.y]
-        w.delete(targetPoint2)
-        w.delete(targetPoint3)
+        w.delete(targetPoint2.thing)
+        w.delete(targetPoint3.thing)
         w.delete(measureLine)
         w.delete(angleLine)
         measureLine = w.create_line(event.x,event.y,firstPoint[0],firstPoint[1])
@@ -235,15 +228,15 @@ def linecoords(event):
         #UNCOMMENT BELOW FOR DISTANCE MEASUREMENT MAGNITUDE
         print round(numpy.linalg.norm(magnitude),2)
         print;
-        drawcirclered(w,event.x,event.y,5)
+        targetPoint2 = drawcircleradius(w,event.x,event.y,5,'red')
 
 def anglemeasure(event):
     global targetPoint3, angleLine, secondPoint, isRecording, reddot, linevector
 
     if isRecording == False and reddot == True:
-        w.delete(targetPoint3)
+        w.delete(targetPoint3.thing)
         w.delete(angleLine)
-        drawcirclegreen(w,event.x,event.y,5)
+        targetPoint3 = drawcircleradius(w,event.x,event.y,5,'green')
         angleLine = w.create_line(event.x,event.y,secondPoint[0],secondPoint[1])
         secondvector = [event.x - secondPoint[0],event.y - secondPoint[1]]
 
