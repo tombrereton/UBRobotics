@@ -6,7 +6,7 @@ import time
 
 class Eurobot(object):
     def __init__(self,track,diameter,position,angle,canvas): #Constructor where canvas is current tkinter-canvas object
-        if track > 0 and diameter > 0:
+        if track > 0 and diameter > 0 and angle < 360:
             global photo #IMPORTANT BUT WHY
             self.canvas = canvas #init to current canvas
             self.track = track #Distance between wheels

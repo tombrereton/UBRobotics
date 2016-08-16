@@ -11,28 +11,28 @@ from eurobot import *
 global primaryRobot, datum, boundsize, firstPoint, measureLine, isRecording, angleLine, secondPoint, pixeltoCM, arenaImageScale #make global so all functions can access it
 global datumColour,boundColour,boundThickness,dotsColour, dotsRadius
 
-# SET PROPERTIES HERE ####################################
+################################## SET PROPERTIES HERE ####################################
 
-datumRadius = 10 #radius of datum marker (circle)
-mainWindow = [800,600] #Size of Main Window (The one that shows the arena)
-primaryWindow = [350,400] #Size of Primary Robot Controller Window
-arenaWindow = [500,400] #Size of Arena Controller Window
-filepath = "config.ini" #Filename of configuration file
-boardFileName = "board.jpg" #Filename of board image (must be portrait orientation)
-scaletoArena = True #Scale main window to arena image size
-arenaImageScale = 1.0 #Scale of arena image where 1.0 is original size
-arenarotation = 90 #Amount to rotate original arena picture (degrees) DEFAULT is +90 for 90 deg anti-clockwise
-autoLoad = True #Load configuration file on window load
+datumRadius = 10			#Radius of datum marker (circle)
+mainWindow = [800,600]			#Size of Main Window (The one that shows the arena)
+primaryWindow = [350,400]		#Size of Primary Robot Controller Window
+arenaWindow = [500,400]			#Size of Arena Controller Window
+filepath = "config.ini" 		#Filename of configuration file
+boardFileName = "board.jpg" 		#Filename of board image (must be portrait orientation)
+scaletoArena = True 			#Scale main window to arena image size
+arenaImageScale = [1.0,1.0] 		#Scale of arena (Xscale, Yscale) image where 1.0 is original size
+arenarotation = 90 			#Amount to rotate original arena picture (degrees) DEFAULT is +90 for 90 deg anti-clockwise
+autoLoad = True 			#Load configuration file on window load
 
 #Visual Properties
 
-dotsColour = ["red","blue","green"] #Colours of the three measurement dots
-dotsRadius = 5 #Size of the measurement dots
-datumColour = "pink" #Colour of datum point
-boundColour = "red" #Colour of the arena boundary marker
-boundThickness = 2 #Thickness of arena boundary marker
+dotsColour = ["red","blue","green"] 	#Colours of the three measurement dots
+dotsRadius = 5 				#Size of the measurement dots
+datumColour = "pink" 			#Colour of datum point
+boundColour = "red" 			#Colour of the arena boundary marker
+boundThickness = 2 			#Thickness of arena boundary marker
 
-# END PROPERTIES #########################################
+#################################### END PROPERTIES #######################################
 
 isRecording = False #Path recording is initially off
 
@@ -41,7 +41,7 @@ Config = ConfigParser.ConfigParser() #init object for storing .ini config files
 
 datum = [0,0] #Zero co-ordinate of the board (bottom right)
 boundsize = [0,0] #Size of boundary
-pixeltoCM = [0,0] #Used to calibrate pixels to actual distance in cm. Divide a number by this to convert to cm, multiply for pixels.
+pixeltoCM = [0,0] #Used to calibrate horizontal and vertical pixels to actual distance in cm. Divide a number by this to convert to cm, multiply for pixels.
 firstPoint = [0,0] #Co-ordinate of first point of measuring line
 secondPoint = [0,0]
 
@@ -58,7 +58,7 @@ angleLine = w.create_line(0,0,0,0)
 
 image = Image.open(boardFileName) #import board image
 width, height = image.size #Pass the size to variables
-image = image.resize((int(width*arenaImageScale), int(height*arenaImageScale)), Image.ANTIALIAS)
+image = image.resize((int(width*arenaImageScale[0]), int(height*arenaImageScale[1])), Image.ANTIALIAS)
 photo = ImageTk.PhotoImage(image.rotate(arenarotation)) #convert for ImageTK format 90deg
 height, width = image.size #inverted order of height width as the image is rotated 90deg
 board = w.create_image(width/2,height/2,image = photo); #add image object to main canvas 'w'
@@ -125,18 +125,18 @@ def setArena():
     datumPoint = drawcircleradius(w,datum[0],datum[1],datumRadius,datumColour) #draw datum point as circle
     boundary = w.create_rectangle(datum[0]-boundsize[0],datum[1]-boundsize[1],datum[0],datum[1],outline=boundColour,width=boundThickness) #draw arena boundaries
 
-def setRecord(): #Begin/Finish path recording
-    global isRecording
-    
-    if isRecording == False:
-        tkMessageBox.showinfo('Recording begin','Path recording activated, left click on arena to set path co-ordinates')
-    else:
-        isSave = tkMessageBox.askokcancel('Recording stop','Save path?')
-
-    isRecording = not isRecording 
-
-#setRecord = Button(w2, text="Toggle Path Recording", command=setRecord) #button to draw robot path by clicking co-ordinates
-#setRecord.grid(row=5,column=1)
+def setRecord(): #Move robot to co-ordinate
+	global primaryRobot, firstPoint 
+	
+	#First orient the robot to the destination	
+        dx = firstPoint[0] - primaryRobot.position[0]
+	dy = firstPoint[1] - primaryRobot.position[1]
+	
+	angle = math.atan2(dy,dx) #Return signed tangent angle from robot to destination RELATIVE TO EAST
+	print math.degrees(angle)	
+	
+setRecord = Button(w2, text="Move to co-ordinate", command=setRecord) #button to draw robot path by clicking co-ordinates
+setRecord.grid(row=5,column=1)
 
 setArena() #auto-load config when program boots
 
@@ -244,11 +244,7 @@ def anglemeasure(event):
         theta = math.acos(costheta)
         print "Angle of Triangle:"
         print str(180-int(math.degrees(theta))) + "deg"
-        print
-        
-w.bind("<Button 1>",printcoords)
-w.bind("<Button 3>",linecoords)
-w.bind("<Button 2>",anglemeasure)
+        print        
 
 def saveSettings(): #Save all settings here
     cfgfile = open(filepath,'w')
@@ -313,5 +309,13 @@ if autoLoad: #Do you want to load config file on window load?
 	loadSettings()
 	setArena()
 	setPrimary()
+
+#################### MOUSE AND KEYBINDS #######################
+
+w.bind("<Button 1>",printcoords)	#Find co-ordinate
+w.bind("<Button 3>",linecoords)		#Find distance
+w.bind("<Button 2>",anglemeasure)	#Find angle
+
+####################### END KEYBINDS ##########################
 
 mainloop()
