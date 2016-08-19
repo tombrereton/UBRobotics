@@ -132,8 +132,9 @@ def setRecord(): #Move robot to co-ordinate
         dx = firstPoint[0] - primaryRobot.position[0]
 	dy = firstPoint[1] - primaryRobot.position[1]
 	
-	angle = math.atan2(dy,dx) #Return signed tangent angle from robot to destination RELATIVE TO EAST
-	print math.degrees(angle)	
+	angle = math.atan2(dx,-dy) #Return signed tangent angle from robot to destination RELATIVE TO EAST
+	north = -(math.degrees(angle)) #Correct to North, change to degrees
+	print north	
 	
 setRecord = Button(w2, text="Move to co-ordinate", command=setRecord) #button to draw robot path by clicking co-ordinates
 setRecord.grid(row=5,column=1)
