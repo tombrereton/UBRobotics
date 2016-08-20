@@ -31,11 +31,11 @@ dotsRadius = 5 				#Size of the measurement dots
 datumColour = "pink" 			#Colour of datum point
 boundColour = "red" 			#Colour of the arena boundary marker
 boundThickness = 2 			#Thickness of arena boundary marker
+pathLineColour = "red" 			#Colour of path recording line
 
 #################################### END PROPERTIES #######################################
 
 isRecording = False #Path recording is initially off
-
 Config = ConfigParser.ConfigParser() #init object for storing .ini config files
 #import RPi.GPIO as GPIO
 
@@ -110,6 +110,8 @@ e4.insert(0,height)
 e4.grid(row=4,column=1)
 Label(w2,bg="white",text="LMB to place position marker, RMB to place distance marker.").grid(row=6,column=0,columnspan=2)
 Label(w2,bg="white",text="Place a third point with MMB after placing the two markers to measure an angle.").grid(row=7,column=0,columnspan=2)
+suppressOutput = IntVar()
+Checkbutton(w2,text="Suppress measurement outputs", variable=suppressOutput).grid(row=10,column=0)
     
 def setArena():
     global datumColour,boundColour,boundThickness,datum, boundsize, pixeltoCM
@@ -126,18 +128,19 @@ def setArena():
     boundary = w.create_rectangle(datum[0]-boundsize[0],datum[1]-boundsize[1],datum[0],datum[1],outline=boundColour,width=boundThickness) #draw arena boundaries
 
 def setRecord(): #Move robot to co-ordinate
-	global primaryRobot, firstPoint 
+	global primaryRobot, firstPoint, pixeltoCM, pathLineColour
 	
 	#First orient the robot to the destination	
         dx = firstPoint[0] - primaryRobot.position[0]
 	dy = firstPoint[1] - primaryRobot.position[1]
 	
-	angle = math.atan2(dx,-dy) #Return signed tangent angle from robot to destination RELATIVE TO EAST
-	north = -(math.degrees(angle)) #Correct to North, change to degrees
-	print north	
-	
-setRecord = Button(w2, text="Move to co-ordinate", command=setRecord) #button to draw robot path by clicking co-ordinates
-setRecord.grid(row=5,column=1)
+	if abs(dx) + abs(dy) > 0:
+        	w.create_line(firstPoint[0],firstPoint[1],primaryRobot.position[0],primaryRobot.position[1],width = 2, fill = pathLineColour) #Draw path line
+		angle = math.atan2(dx,-dy) #Return signed tangent angle from robot to destination RELATIVE TO EAST
+		north = -(math.degrees(angle)) #Correct to North, change to degrees
+		print "primary.rotate(" + str(int(north - primaryRobot.angle)) + ");"
+		print "primary.move(" + str(int(numpy.linalg.norm([dy/pixeltoCM[0],dx/pixeltoCM[1]]))) + ");"	
+		primaryRobot = Eurobot(primaryRobot.track,primaryRobot.diameter,[firstPoint[0], firstPoint[1]],north,w) #Make new instance of robot translated by twice the displacement and rotated 180
 
 setArena() #auto-load config when program boots
 
@@ -181,13 +184,20 @@ def flipPrimary(): #flip primary robot to other side of arena
     
 	reflect = datum[0] - boundsize[0]/2 #X co-ordinate of line of reflection
 	translation = reflect - primaryRobot.position[0] #X displacement of robot from line of reflection
+        
+	primaryRobot.angle += 180
+
+	while primaryRobot.angle > 180: #If the robot angle is greater than 180 anti-clock then rotate by 360 to keep within -180 and 180 deg 
+		primaryRobot.angle -= 360
 	
-	primaryRobot = Eurobot(primaryRobot.track,primaryRobot.diameter,[primaryRobot.position[0] + 2*translation, primaryRobot.position[1]],primaryRobot.angle+180,w) #Make new instance of robot translated by twice the displacement and rotated 180
+	primaryRobot = Eurobot(primaryRobot.track,primaryRobot.diameter,[primaryRobot.position[0] + 2*translation, primaryRobot.position[1]],primaryRobot.angle,w) #Make new instance of robot translated by twice the displacement and rotated 180
    
 flip1 = Button(w3, text="Flip sides", command=flipPrimary) #Button for it
 flip1.grid(row=6,column=1) #Assign position
 Label(w3,text="", bg="white").grid(row=7,column=0) #blank space
 
+setRecord = Button(w3, text="Move to position marker", command=setRecord) #button to draw robot path by clicking co-ordinates
+setRecord.grid(row=8,column=0)
 #Some reason unable to animate robot unless it is done in the same function that created it
 #Button(w3, text="Move to co-ordinate").grid(row=8,column=0)
 
@@ -202,10 +212,11 @@ def printcoords(event):
         w.delete(targetPoint3.thing)
         w.delete(measureLine)
         w.delete(angleLine)
-        print("Clicked co-ordinate (X,Y):")
-        print(int(-(event.x - datum[0])/pixeltoCM[0]),int(-(event.y - datum[1])/pixeltoCM[1]))
-        print;
         targetPoint = drawcircleradius(w,event.x,event.y,dotsRadius,dotsColour[0])
+	if suppressOutput.get() == 0:
+        	print("Clicked co-ordinate (X,Y):")
+        	print(int(-(event.x - datum[0])/pixeltoCM[0]),int(-(event.y - datum[1])/pixeltoCM[1]))
+        	print;
 
 def linecoords(event):
     global dotsRadius,firstPoint,pixeltoCM,datum,targetPoint2,dotsColour,measureLine,isRecording,targetPoint3,secondPoint,reddot,linevector
@@ -219,14 +230,14 @@ def linecoords(event):
         w.delete(angleLine)
         measureLine = w.create_line(event.x,event.y,firstPoint[0],firstPoint[1])
         linevector = [secondPoint[0]-firstPoint[0],secondPoint[1]-firstPoint[1]]
-        print("Distance measurements [dX dY]:")
         distance = [int(-(firstPoint[0] - event.x)/pixeltoCM[0]),int((firstPoint[1] - event.y)/pixeltoCM[1])]
         magnitude =  numpy.array([round(-(firstPoint[0] - event.x)/pixeltoCM[0],0),round(-(firstPoint[1] - event.y)/pixeltoCM[1],0)])
         angle = round(math.degrees(math.atan2(distance[0],(distance[1] + 0.0001))),0)
-        print "[" + str(distance[0]) + " " + str(distance[1]) + "]" + " heading: " + str(-angle) + "deg from N"
-        #UNCOMMENT BELOW FOR DISTANCE MEASUREMENT MAGNITUDE
-        print round(numpy.linalg.norm(magnitude),2)
-        print;
+	if suppressOutput.get() == 0:
+		print("Distance measurements [dX dY]:")
+        	print "[" + str(distance[0]) + " " + str(distance[1]) + "]" + " heading: " + str(-angle) + "deg from N"
+        	print round(numpy.linalg.norm(magnitude),2)
+        	print;
         targetPoint2 = drawcircleradius(w,event.x,event.y,dotsRadius,dotsColour[1])
 
 def anglemeasure(event):
@@ -243,9 +254,10 @@ def anglemeasure(event):
         dot = numpy.vdot(linevector,secondvector)
         costheta = dot/numpy.linalg.norm(linevector)/numpy.linalg.norm(secondvector)
         theta = math.acos(costheta)
-        print "Angle of Triangle:"
-        print str(180-int(math.degrees(theta))) + "deg"
-        print        
+	if suppressOutput.get() == 0:
+		print "Angle of Triangle:"
+        	print str(180-int(math.degrees(theta))) + "deg"
+        	print        
 
 def saveSettings(): #Save all settings here
     cfgfile = open(filepath,'w')
@@ -316,6 +328,7 @@ if autoLoad: #Do you want to load config file on window load?
 w.bind("<Button 1>",printcoords)	#Find co-ordinate
 w.bind("<Button 3>",linecoords)		#Find distance
 w.bind("<Button 2>",anglemeasure)	#Find angle
+w.bind_all("a",setRecord)
 
 ####################### END KEYBINDS ##########################
 

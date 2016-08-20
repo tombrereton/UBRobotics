@@ -6,7 +6,7 @@ import time
 
 class Eurobot(object):
     def __init__(self,track,diameter,position,angle,canvas): #Constructor where canvas is current tkinter-canvas object
-        if track > 0 and diameter > 0 and angle < 360:
+        if track > 0 and diameter > 0 and angle <= 180 and angle >= -180:
             global photo #IMPORTANT BUT WHY
             self.canvas = canvas #init to current canvas
             self.track = track #Distance between wheels
@@ -18,8 +18,8 @@ class Eurobot(object):
             photo = ImageTk.PhotoImage(self.image.rotate(self.angle+180)) #convert for ImageTK format (180 deg such that the feet of the robot picture is the forward direction)
             self.robot = self.canvas.create_image(self.position[0],self.position[1],image = photo) #display the PhotoImage object
 
-            print "Created primary robot - Track: %d, Diameter: %d, Heading: %d Position: [%d, %d]" % (self.track,self.diameter,self.angle,self.position[0],self.position[1])
-            print
+            #print "Created primary robot - Track: %d, Diameter: %d, Heading: %d Position: [%d, %d]" % (self.track,self.diameter,self.angle,self.position[0],self.position[1])
+            #print
         else:
             tkMessageBox.showerror('Robot creation failed!','Invalid parameters detected!')
 
