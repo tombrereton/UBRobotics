@@ -138,9 +138,11 @@ def setRecord(): #Move robot to co-ordinate
         	w.create_line(firstPoint[0],firstPoint[1],primaryRobot.position[0],primaryRobot.position[1],width = 2, fill = pathLineColour) #Draw path line
 		angle = math.atan2(dx,-dy) #Return signed tangent angle from robot to destination RELATIVE TO EAST
 		north = -(math.degrees(angle)) #Correct to North, change to degrees
-		print "primary.rotate(" + str(int(north - primaryRobot.angle)) + ");"
+		rotate = north - primaryRobot.angle
+		primaryRobot.rotate(rotate)
+		print "primary.rotate(" + str(int(primaryRobot.rotation)) + ");" #Get calibrated rotational displacement
 		print "primary.move(" + str(int(numpy.linalg.norm([dy/pixeltoCM[0],dx/pixeltoCM[1]]))) + ");"	
-		primaryRobot = Eurobot(primaryRobot.track,primaryRobot.diameter,[firstPoint[0], firstPoint[1]],north,w) #Make new instance of robot translated by twice the displacement and rotated 180
+		primaryRobot = Eurobot(primaryRobot.track,primaryRobot.diameter,[firstPoint[0], firstPoint[1]],primaryRobot.angle,w) #Make new instance of robot translated by twice the displacement and rotated 180
 
 setArena() #auto-load config when program boots
 

@@ -6,14 +6,22 @@ import time
 
 class Eurobot(object):
     def __init__(self,track,diameter,position,angle,canvas): #Constructor where canvas is current tkinter-canvas object
-        if track > 0 and diameter > 0 and angle <= 180 and angle >= -180:
+        if track > 0 and diameter > 0:
             global photo #IMPORTANT BUT WHY
             self.canvas = canvas #init to current canvas
             self.track = track #Distance between wheels
             self.diameter = diameter #Diameter of wheels
             self.position = position #init position
             self.angle = angle #init heading of robot where 0 is NORTH and is positive counter-clockwise
-            self.image = Image.open("robot.jpg") #import image
+            
+            #correct angle
+	    while abs(self.angle) > 180: #magnitude too high
+	    	if self.angle > 0:
+			self.angle -= 360
+		else:
+			self.angle += 360
+	
+	    self.image = Image.open("robot.jpg") #import image
             self.image = self.image.resize((track, diameter), Image.ANTIALIAS) #resize image to match track and wheel diameter
             photo = ImageTk.PhotoImage(self.image.rotate(self.angle+180)) #convert for ImageTK format (180 deg such that the feet of the robot picture is the forward direction)
             self.robot = self.canvas.create_image(self.position[0],self.position[1],image = photo) #display the PhotoImage object
@@ -42,8 +50,9 @@ class Eurobot(object):
         print self.position
         
     def rotate(self,degrees):
-        self.angle += degrees
-        print "Rotated by %d to a heading of %d" % (degrees, self.angle) 
-        photo = ImageTk.PhotoImage(self.image.rotate(self.angle))
-        self.robot = self.canvas.create_image(self.position[0],self.position[1],image = photo)
-        
+        while abs(degrees) > 180: #If magnitude of rotation is too much take away 360 until it is within -180 and 180
+		direction = abs(degrees) / degrees #+ve or negative
+		degrees -= 360*direction	
+	self.rotation = degrees
+	self.angle += degrees
+	
