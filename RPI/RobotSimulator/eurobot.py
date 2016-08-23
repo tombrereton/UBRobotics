@@ -31,17 +31,20 @@ class Eurobot(object):
         else:
             tkMessageBox.showerror('Robot creation failed!','Invalid parameters detected!')
 
-    def translate(self,distance): #move according to robot heading and distance 
-        print "Robot at angle: %f" % self.angle
+    def translate(self,distance,isReverse): #move according to robot heading and distance IN PIXELS When isReverse = 1 then the robot is in reverse 
+        #print "Robot at angle: %f" % self.angle
         x_vector = -math.sin(math.radians(self.angle)) #Work out X and Y displacement vectors according to heading
         y_vector = -math.cos(math.radians(self.angle))
-        print "Vector: [%f, %f]" % (x_vector, y_vector)
-
-        self.position[0] += distance * x_vector #add to current position
-        self.position[1] += distance * y_vector
-        print "Moving from: [%d, %d] to [%d, %d]" % (self.position[0] - distance * x_vector,self.position[1] - distance *y_vector,self.position[0],self.position[1]) #written like this as python doesn't have constants
+        #print "Vector: [%f, %f]" % (x_vector, y_vector)
+        if isReverse == 1:
+            self.position[0] -= distance * x_vector #add to current position
+            self.position[1] -= distance * y_vector #add to current position
+        else:
+            self.position[0] += distance * x_vector #add to current position
+            self.position[1] += distance * y_vector
+        #print "Moving from: [%d, %d] to [%d, %d]" % (self.position[0] - distance * x_vector,self.position[1] - distance *y_vector,self.position[0],self.position[1]) #written like this as python doesn't have constants
      
-        self.canvas.move(self.robot, distance * x_vector, distance * y_vector) #move by given vector
+        #self.canvas.move(self.robot, distance * x_vector, distance * y_vector) #move by given vector
 
     def abstranslate(self,distance): #move regardless of heading
         self.position[0] += distance[0]
@@ -49,7 +52,7 @@ class Eurobot(object):
         self.canvas.move(self.robot, distance[0], distance[1]) #move by given vector
         print self.position
         
-    def rotate(self,degrees):
+    def rotate(self,degrees): #IN DEGREES
         while abs(degrees) > 180: #If magnitude of rotation is too much take away 360 until it is within -180 and 180
 		direction = abs(degrees) / degrees #+ve or negative
 		degrees -= 360*direction	

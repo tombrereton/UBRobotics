@@ -9,7 +9,7 @@ import time
 import numpy
 from eurobot import *
 global primaryRobot, datum, boundsize, firstPoint, measureLine, isRecording, angleLine, secondPoint, pixeltoCM, arenaImageScale #make global so all functions can access it
-global datumColour,boundColour,boundThickness,dotsColour, dotsRadius
+global datumColour,boundColour,boundThickness,dotsColour, dotsRadius,reversegear
 
 ################################## SET PROPERTIES HERE ####################################
 
@@ -128,22 +128,29 @@ def setArena():
     boundary = w.create_rectangle(datum[0]-boundsize[0],datum[1]-boundsize[1],datum[0],datum[1],outline=boundColour,width=boundThickness) #draw arena boundaries
 
 def setRecord(): #Move robot to co-ordinate
-	global primaryRobot, firstPoint, pixeltoCM, pathLineColour
+	global reversegear,primaryRobot, firstPoint, pixeltoCM, pathLineColour
 	
 	#First orient the robot to the destination	
         dx = firstPoint[0] - primaryRobot.position[0]
 	dy = firstPoint[1] - primaryRobot.position[1]
 	
-	if abs(dx) + abs(dy) > 0:
+	if abs(dx) + abs(dy) > 0: #As long as there is some translation
         	w.create_line(firstPoint[0],firstPoint[1],primaryRobot.position[0],primaryRobot.position[1],width = 2, fill = pathLineColour) #Draw path line
 		angle = math.atan2(dx,-dy) #Return signed tangent angle from robot to destination RELATIVE TO EAST
 		north = -(math.degrees(angle)) #Correct to North, change to degrees
-		rotate = north - primaryRobot.angle
-		primaryRobot.rotate(rotate)
-		print "primary.rotate(" + str(int(primaryRobot.rotation)) + ");" #Get calibrated rotational displacement
-		print "primary.move(" + str(int(numpy.linalg.norm([dy/pixeltoCM[0],dx/pixeltoCM[1]]))) + ");"	
-		primaryRobot = Eurobot(primaryRobot.track,primaryRobot.diameter,[firstPoint[0], firstPoint[1]],primaryRobot.angle,w) #Make new instance of robot translated by twice the displacement and rotated 180
+		rotate = north - primaryRobot.angle #Angular displacement
+                direction = 1 #initially forward
 
+                if reversegear.get() == 1: #reversing, so bring it back another 180
+                    rotate += 180
+                    direction = -1 #reverse
+
+                primaryRobot.rotate(rotate) #Rotate the robot
+                distance = int(numpy.linalg.norm([dy,dx]))
+                primaryRobot.translate(distance,reversegear.get()) #Translate the robot
+		print "primary.rotate(" + str(int(primaryRobot.rotation)) + ");" #Get calibrated rotational displacement
+		print "primary.move(" + str(direction*int(distance/pixeltoCM[0])) + ");"	
+                primaryRobot = Eurobot(primaryRobot.track,primaryRobot.diameter,primaryRobot.position,primaryRobot.angle,w) #Draw the robot again 
 setArena() #auto-load config when program boots
 
 win3 = Toplevel() #Create a Tkinter window object for controller TOPLEVEL when you have more than one
@@ -203,6 +210,9 @@ setRecord.grid(row=8,column=0)
 #Some reason unable to animate robot unless it is done in the same function that created it
 #Button(w3, text="Move to co-ordinate").grid(row=8,column=0)
 
+reversegear = IntVar()
+Checkbutton(w3,text="Reverse gear", variable=reversegear).grid(row=8,column=1)
+
 def printcoords(event):
     global targetPoint,pixeltoCM,datum,firstPoint,targetPoint2,measureLine,targetPoint3, reddot, dotsColour, dotsRadius
 
@@ -217,7 +227,7 @@ def printcoords(event):
         targetPoint = drawcircleradius(w,event.x,event.y,dotsRadius,dotsColour[0])
 	if suppressOutput.get() == 0:
         	print("Clicked co-ordinate (X,Y):")
-        	print(int(-(event.x - datum[0])/pixeltoCM[0]),int(-(event.y - datum[1])/pixeltoCM[1]))
+        	print(round(-(event.x - datum[0])/pixeltoCM[0],1),round(-(event.y - datum[1])/pixeltoCM[1],1))
         	print;
 
 def linecoords(event):
@@ -232,13 +242,13 @@ def linecoords(event):
         w.delete(angleLine)
         measureLine = w.create_line(event.x,event.y,firstPoint[0],firstPoint[1])
         linevector = [secondPoint[0]-firstPoint[0],secondPoint[1]-firstPoint[1]]
-        distance = [int(-(firstPoint[0] - event.x)/pixeltoCM[0]),int((firstPoint[1] - event.y)/pixeltoCM[1])]
+        distance = [round(-(firstPoint[0] - event.x)/pixeltoCM[0],1),round((firstPoint[1] - event.y)/pixeltoCM[1],1)]
         magnitude =  numpy.array([round(-(firstPoint[0] - event.x)/pixeltoCM[0],0),round(-(firstPoint[1] - event.y)/pixeltoCM[1],0)])
         angle = round(math.degrees(math.atan2(distance[0],(distance[1] + 0.0001))),0)
 	if suppressOutput.get() == 0:
-		print("Distance measurements [dX dY]:")
-        	print "[" + str(distance[0]) + " " + str(distance[1]) + "]" + " heading: " + str(-angle) + "deg from N"
-        	print round(numpy.linalg.norm(magnitude),2)
+		print "Displacement [dX dY]: " + "[" + str(distance[0]) + " " + str(distance[1]) + "]" 
+        	print "Heading: " + str(-angle) + "deg from N"
+                print "Distance:" + str(round(numpy.linalg.norm(magnitude),2))
         	print;
         targetPoint2 = drawcircleradius(w,event.x,event.y,dotsRadius,dotsColour[1])
 
@@ -311,6 +321,8 @@ def loadSettings(): #Load all settings here
             e8.insert(0, Config.getint('Primary','track'))
             e9.delete(0, END)
             e9.insert(0, Config.getint('Primary','diameter'))
+            setArena()
+            setPrimary()
         else:
             print "Load failed."
     except:
@@ -322,15 +334,12 @@ Button(w2, text="Load configuration", command=loadSettings).grid(row=9,column=1)
 
 if autoLoad: #Do you want to load config file on window load?
 	loadSettings()
-	setArena()
-	setPrimary()
 
 #################### MOUSE AND KEYBINDS #######################
 
 w.bind("<Button 1>",printcoords)	#Find co-ordinate
 w.bind("<Button 3>",linecoords)		#Find distance
 w.bind("<Button 2>",anglemeasure)	#Find angle
-w.bind_all("a",setRecord)
 
 ####################### END KEYBINDS ##########################
 
