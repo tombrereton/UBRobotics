@@ -7,9 +7,13 @@ import ConfigParser #to save settings
 import os.path #check file exists
 import time
 import numpy
+import subprocess #Run bash scripts within python
 from eurobot import *
+from pathPrint import pathPrint
+
 global primaryRobot, datum, boundsize, firstPoint, measureLine, isRecording, angleLine, secondPoint, pixeltoCM, arenaImageScale #make global so all functions can access it
 global datumColour,boundColour,boundThickness,dotsColour, dotsRadius,reversegear
+global printer
 
 ################################## SET PROPERTIES HERE ####################################
 
@@ -35,6 +39,8 @@ pathLineColour = "red" 			#Colour of path recording line
 
 #################################### END PROPERTIES #######################################
 
+printer = ""
+recording = False
 isRecording = False #Path recording is initially off
 Config = ConfigParser.ConfigParser() #init object for storing .ini config files
 #import RPi.GPIO as GPIO
@@ -128,7 +134,7 @@ def setArena():
     boundary = w.create_rectangle(datum[0]-boundsize[0],datum[1]-boundsize[1],datum[0],datum[1],outline=boundColour,width=boundThickness) #draw arena boundaries
 
 def setRecord(): #Move robot to co-ordinate
-	global reversegear,primaryRobot, firstPoint, pixeltoCM, pathLineColour
+	global printer,recording,reversegear,primaryRobot, firstPoint, pixeltoCM, pathLineColour
 	
 	#First orient the robot to the destination	
         dx = firstPoint[0] - primaryRobot.position[0]
@@ -148,8 +154,14 @@ def setRecord(): #Move robot to co-ordinate
                 primaryRobot.rotate(rotate) #Rotate the robot
                 distance = int(numpy.linalg.norm([dy,dx]))
                 primaryRobot.translate(distance,reversegear.get()) #Translate the robot
-		print "primary.rotate(" + str(int(primaryRobot.rotation)) + ");" #Get calibrated rotational displacement
-		print "primary.move(" + str(direction*int(distance/pixeltoCM[0])) + ");"	
+                text1 = str(int(primaryRobot.rotation))
+                text2 = str(direction*int(distance/pixeltoCM[0]))
+
+                if recording == True:
+                    printer = printer + "\nprimary.rotate(" + text1 + ");" #Get calibrated rotational displacement
+                    printer = printer + "\nprimary.move(" + text2 + ");" #Multiply by direction to make move negative or positive depending on direction of travel	
+                    #print printer
+                
                 primaryRobot = Eurobot(primaryRobot.track,primaryRobot.diameter,primaryRobot.position,primaryRobot.angle,w) #Draw the robot again 
 setArena() #auto-load config when program boots
 
@@ -212,6 +224,22 @@ setRecord.grid(row=8,column=0)
 
 reversegear = IntVar()
 Checkbutton(w3,text="Reverse gear", variable=reversegear).grid(row=8,column=1)
+
+def setPath():
+    global recording,printer
+    
+    if recording == True:
+        printed = pathPrint("Primary Path",printer)
+        printButton.config(relief='raised')
+    else:
+        #Init the printed text
+        printer = ""
+        printButton.config(relief='sunken')
+
+    recording = not recording
+
+printButton = Button(w3,text="Record Path",command=setPath)
+printButton.grid(row=9,column=0) #Must call on separate line!
 
 def printcoords(event):
     global targetPoint,pixeltoCM,datum,firstPoint,targetPoint2,measureLine,targetPoint3, reddot, dotsColour, dotsRadius
@@ -331,6 +359,8 @@ def loadSettings(): #Load all settings here
 Button(w2, text="Update arena", command=setArena).grid(row=8,column=0)
 Button(w2, text="Save configuration", command=saveSettings).grid(row=9,column=0)
 Button(w2, text="Load configuration", command=loadSettings).grid(row=9,column=1)
+
+#testPath = pathPrint("Primary Robot Path")
 
 if autoLoad: #Do you want to load config file on window load?
 	loadSettings()
