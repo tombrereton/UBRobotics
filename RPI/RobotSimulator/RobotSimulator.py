@@ -134,110 +134,6 @@ def setArena():
     datumPoint = drawcircleradius(w,datum[0],datum[1],datumRadius,datumColour) #draw datum point as circle
     boundary = w.create_rectangle(datum[0]-boundsize[0],datum[1]-boundsize[1],datum[0],datum[1],outline=boundColour,width=boundThickness) #draw arena boundaries
 
-def setRecord(): #Move robot to co-ordinate
-	global printer,recording,reversegear,primaryRobot, firstPoint, pixeltoCM, pathLineColour
-	
-	#First orient the robot to the destination	
-        dx = firstPoint[0] - primaryRobot.position[0]
-	dy = firstPoint[1] - primaryRobot.position[1]
-	
-	if abs(dx) + abs(dy) > 0: #As long as there is some translation
-        	w.create_line(firstPoint[0],firstPoint[1],primaryRobot.position[0],primaryRobot.position[1],width = 2, fill = pathLineColour) #Draw path line
-		angle = math.atan2(dx,-dy) #Return signed tangent angle from robot to destination RELATIVE TO EAST
-		north = -(math.degrees(angle)) #Correct to North, change to degrees
-		rotate = north - primaryRobot.angle #Angular displacement
-                direction = 1 #initially forward
-
-                if reversegear.get() == 1: #reversing, so bring it back another 180
-                    rotate += 180
-                    direction = -1 #reverse
-
-                primaryRobot.rotate(rotate) #Rotate the robot
-                distance = int(numpy.linalg.norm([dy,dx]))
-                primaryRobot.translate(distance,reversegear.get()) #Translate the robot
-                text1 = str(int(primaryRobot.rotation))
-                text2 = str(direction*int(distance/pixeltoCM[0]))
-
-                if recording == True:
-                    printer = printer + "\nprimary.rotate(" + text1 + ");" #Get calibrated rotational displacement
-                    printer = printer + "\nprimary.move(" + text2 + ");" #Multiply by direction to make move negative or positive depending on direction of travel	
-                    #print printer
-                
-                #primaryRobot = Eurobot(primaryRobot.track,primaryRobot.diameter,primaryRobot.position,primaryRobot.angle,w) #Draw the robot again 
-
-setArena() #auto-load config when program boots
-
-win3 = Toplevel() #Create a Tkinter window object for controller TOPLEVEL when you have more than one
-win3.title("Primary Robot Controller") #set all primary robot parameters
-win3.geometry(str(primaryWindow[0])+"x"+str(primaryWindow[1]))
-w3 = Canvas(win3,bg="white")
-w3.pack(expand=YES,fill=BOTH)
-#Starting vector
-t5 = Label(w3,text="Starting X: ").grid(row=0,column=0)
-e5 = Entry(w3) 
-e5.insert(0,0)
-e5.grid(row=0,column=1)
-t6 = Label(w3,text="Starting Y: ").grid(row=1,column=0)
-e6 = Entry(w3)
-e6.insert(0,0)
-e6.grid(row=1,column=1)
-t7 = Label(w3,text="Starting Heading (degrees): ").grid(row=2,column=0)
-e7 = Entry(w3)
-e7.insert(0,0)
-e7.grid(row=2,column=1)
-t8 = Label(w3,text="Track (centimeters): ").grid(row=3,column=0)
-e8 = Entry(w3)
-e8.insert(0,0)
-e8.grid(row=3,column=1)
-t9 = Label(w3,text="Wheel diameter (centimeters): ").grid(row=4,column=0)
-e9 = Entry(w3)
-e9.insert(0,0)
-e9.grid(row=4,column=1)
-
-def setPrimary(): #function to 'build' primary robot according to text input
-    global primaryRobot, pixeltoCM #make sure the instance of class is created at the global level for full access
-    primaryRobot = Eurobot(int(eval(e8.get())*pixeltoCM[1]),int(eval(e9.get())*pixeltoCM[0]),[int(e5.get()),int(e6.get())],int(e7.get()),w) #set parameters according to input fields
-
-Label(w3,text="", bg="white").grid(row=5,column=0) #blank space
-activate1 = Button(w3, text="Build primary robot", command=setPrimary) #button to set primary robot parameters
-activate1.grid(row=6,column=0)
-
-def flipPrimary(): #flip primary robot to other side of arena
-	global primaryRobot #Get global instance of robot
-    
-	reflect = datum[0] - boundsize[0]/2 #X co-ordinate of line of reflection
-	translation = reflect - primaryRobot.position[0] #X displacement of robot from line of reflection
-        primaryRobot.abstranslate([2*translation,0]) #Translate without taking in account angle of robot
-        primaryRobot.rotate(180)
-   
-flip1 = Button(w3, text="Flip sides", command=flipPrimary) #Button for it
-flip1.grid(row=6,column=1) #Assign position
-Label(w3,text="", bg="white").grid(row=7,column=0) #blank space
-
-setRecord = Button(w3, text="Move to position marker", command=setRecord) #button to draw robot path by clicking co-ordinates
-setRecord.grid(row=8,column=0)
-#Some reason unable to animate robot unless it is done in the same function that created it
-#Button(w3, text="Move to co-ordinate").grid(row=8,column=0)
-
-reversegear = IntVar()
-Checkbutton(w3,text="Reverse gear", variable=reversegear).grid(row=8,column=1)
-
-def setPath():
-    global recording,printer
-    
-    if recording == True:
-        printed = pathPrint("Primary Path",printer)
-        printButton.config(relief='raised')
-    else:
-        #Init the printed text
-        printer = ""
-        printButton.config(relief='sunken')
-
-    recording = not recording
-
-printButton = Button(w3,text="Record Path",command=setPath)
-printButton.grid(row=9,column=0) #Must call on separate line!
-
 def printcoords(event):
     global targetPoint,pixeltoCM,datum,firstPoint,targetPoint2,measureLine,targetPoint3, reddot, dotsColour, dotsRadius
 
@@ -298,10 +194,11 @@ def anglemeasure(event):
 
 def saveSettings(): #Save all settings here
     cfgfile = open(filepath,'w')
-    
+    global primaryController,secondaryController
     try:        
         Config.add_section('Arena')
         Config.add_section('Primary')
+        Config.add_section('Secondary')
     except:
         print "Config file already exists."
     
@@ -311,11 +208,17 @@ def saveSettings(): #Save all settings here
         Config.set('Arena','datumy',e2.get())
         Config.set('Arena','length',e3.get())
         Config.set('Arena','width',e4.get())
-        Config.set('Primary','startx',e5.get())
-        Config.set('Primary','starty',e6.get())
-        Config.set('Primary','heading',e7.get())
-        Config.set('Primary','track',e8.get())
-        Config.set('Primary','diameter',e9.get())
+        Config.set('Primary','startx',primaryController.e5.get())
+        Config.set('Primary','starty',primaryController.e6.get())
+        Config.set('Primary','heading',primaryController.e7.get())
+        Config.set('Primary','track',primaryController.e8.get())
+        Config.set('Primary','diameter',primaryController.e9.get())
+        Config.set('Secondary','startx',secondaryController.e5.get())
+        Config.set('Secondary','starty',secondaryController.e6.get())
+        Config.set('Secondary','heading',secondaryController.e7.get())
+        Config.set('Secondary','track',secondaryController.e8.get())
+        Config.set('Secondary','diameter',secondaryController.e9.get())
+
         Config.write(cfgfile)
         cfgfile.close()
         print "Config saved"
@@ -323,6 +226,7 @@ def saveSettings(): #Save all settings here
         print "Save failed."
 
 def loadSettings(): #Load all settings here
+    global primaryController,secondaryController
     try:
         Config.read(filepath)
         result = tkMessageBox.askquestion("Load configuration?","Are you sure you want to load? Any modifications will be deleted.", icon='warning')
@@ -336,35 +240,49 @@ def loadSettings(): #Load all settings here
             e3.insert(0, Config.getint('Arena','length'))
             e4.delete(0, END)
             e4.insert(0, Config.getint('Arena','width'))
-            e5.delete(0, END)
-            e5.insert(0, Config.getint('Primary','startx'))
-            e6.delete(0, END)
-            e6.insert(0, Config.getint('Primary','starty'))
-            e7.delete(0, END)
-            e7.insert(0, Config.getint('Primary','heading'))
-            e8.delete(0, END)
-            e8.insert(0, Config.getint('Primary','track'))
-            e9.delete(0, END)
-            e9.insert(0, Config.getint('Primary','diameter'))
             setArena()
-            setPrimary()
+            primaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize)
+            primaryController.e5.delete(0, END)
+            primaryController.e5.insert(0, Config.getint('Primary','startx'))
+            primaryController.e6.delete(0, END)
+            primaryController.e6.insert(0, Config.getint('Primary','starty'))
+            primaryController.e7.delete(0, END)
+            primaryController.e7.insert(0, Config.getint('Primary','heading'))
+            primaryController.e8.delete(0, END)
+            primaryController.e8.insert(0, Config.getint('Primary','track'))
+            primaryController.e9.delete(0, END)
+            primaryController.e9.insert(0, Config.getint('Primary','diameter'))
+            primaryController.setPrimary()
+            secondaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize)
+            secondaryController.e5.delete(0, END)
+            secondaryController.e5.insert(0, Config.getint('Secondary','startx'))
+            secondaryController.e6.delete(0, END)
+            secondaryController.e6.insert(0, Config.getint('Secondary','starty'))
+            secondaryController.e7.delete(0, END)
+            secondaryController.e7.insert(0, Config.getint('Secondary','heading'))
+            secondaryController.e8.delete(0, END)
+            secondaryController.e8.insert(0, Config.getint('Secondary','track'))
+            secondaryController.e9.delete(0, END)
+            secondaryController.e9.insert(0, Config.getint('Secondary','diameter'))
+            secondaryController.setPrimary()
         else:
             print "Load failed."
     except:
         tkMessageBox.showerror("Error!","Config file doesn't exist. Please save before loading.")
+        primaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize)
+        secondaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize)
 
 Button(w2, text="Update arena", command=setArena).grid(row=8,column=0)
 Button(w2, text="Save configuration", command=saveSettings).grid(row=9,column=0)
 Button(w2, text="Load configuration", command=loadSettings).grid(row=9,column=1)
 
-#primaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize,firstPoint)
 
 if autoLoad: #Do you want to load config file on window load?
 	loadSettings()
 
 #################### MOUSE AND KEYBINDS #######################
 
-w.bind("<Button 1>",printcoords)	#Find co-ordinate
+w.bind("<Button 1>",printcoords, add ="+")	#Find co-ordinate
 w.bind("<Button 3>",linecoords)		#Find distance
 w.bind("<Button 2>",anglemeasure)	#Find angle
 

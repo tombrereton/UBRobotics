@@ -7,7 +7,7 @@ import time
 class Eurobot(object):
     def __init__(self,track,diameter,position,angle,canvas): #Constructor where canvas is current tkinter-canvas object
         if track > 0 and diameter > 0:
-            global photo #IMPORTANT BUT WHY
+            #global photo #IMPORTANT BUT WHY
             self.canvas = canvas #init to current canvas
             self.track = track #Distance between wheels
             self.diameter = diameter #Diameter of wheels
@@ -23,8 +23,8 @@ class Eurobot(object):
 	
 	    self.image = Image.open("robot.jpg") #import image
             self.image = self.image.resize((track, diameter), Image.ANTIALIAS) #resize image to match track and wheel diameter
-            photo = ImageTk.PhotoImage(self.image.rotate(self.angle+180)) #convert for ImageTK format (180 deg such that the feet of the robot picture is the forward direction)
-            self.robot = self.canvas.create_image(self.position[0],self.position[1],image = photo) #display the PhotoImage object
+            self.photo = ImageTk.PhotoImage(self.image.rotate(self.angle+180)) #convert for ImageTK format (180 deg such that the feet of the robot picture is the forward direction)
+            self.robot = self.canvas.create_image(self.position[0],self.position[1],image = self.photo) #display the PhotoImage object
 
             #print "Created primary robot - Track: %d, Diameter: %d, Heading: %d Position: [%d, %d]" % (self.track,self.diameter,self.angle,self.position[0],self.position[1])
             #print
@@ -54,7 +54,7 @@ class Eurobot(object):
         #print self.position
         
     def rotate(self,degrees): #IN DEGREES
-        global photo
+        #global photo
 
         while abs(degrees) > 180: #If magnitude of rotation is too much take away 360 until it is within -180 and 180
 		direction = abs(degrees) / degrees #+ve or negative
@@ -62,5 +62,5 @@ class Eurobot(object):
 
 	self.rotation = degrees
 	self.angle += degrees
-        photo = ImageTk.PhotoImage(self.image.rotate(self.angle+180)) #convert for ImageTK format (180 deg such that the feet of the robot picture is the forward direction)
-        self.robot = self.canvas.create_image(self.position[0],self.position[1],image = photo) #display the PhotoImage object
+        self.photo = ImageTk.PhotoImage(self.image.rotate(self.angle+180)) #convert for ImageTK format (180 deg such that the feet of the robot picture is the forward direction)
+        self.robot = self.canvas.create_image(self.position[0],self.position[1],image = self.photo) #display the PhotoImage object
