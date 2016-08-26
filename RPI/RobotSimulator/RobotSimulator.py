@@ -10,6 +10,7 @@ import numpy
 import subprocess #Run bash scripts within python
 from eurobot import *
 from pathPrint import pathPrint
+from controller import controller
 
 global primaryRobot, datum, boundsize, firstPoint, measureLine, isRecording, angleLine, secondPoint, pixeltoCM, arenaImageScale #make global so all functions can access it
 global datumColour,boundColour,boundThickness,dotsColour, dotsRadius,reversegear
@@ -162,7 +163,8 @@ def setRecord(): #Move robot to co-ordinate
                     printer = printer + "\nprimary.move(" + text2 + ");" #Multiply by direction to make move negative or positive depending on direction of travel	
                     #print printer
                 
-                primaryRobot = Eurobot(primaryRobot.track,primaryRobot.diameter,primaryRobot.position,primaryRobot.angle,w) #Draw the robot again 
+                #primaryRobot = Eurobot(primaryRobot.track,primaryRobot.diameter,primaryRobot.position,primaryRobot.angle,w) #Draw the robot again 
+
 setArena() #auto-load config when program boots
 
 win3 = Toplevel() #Create a Tkinter window object for controller TOPLEVEL when you have more than one
@@ -205,13 +207,8 @@ def flipPrimary(): #flip primary robot to other side of arena
     
 	reflect = datum[0] - boundsize[0]/2 #X co-ordinate of line of reflection
 	translation = reflect - primaryRobot.position[0] #X displacement of robot from line of reflection
-        
-	primaryRobot.angle += 180
-
-	while primaryRobot.angle > 180: #If the robot angle is greater than 180 anti-clock then rotate by 360 to keep within -180 and 180 deg 
-		primaryRobot.angle -= 360
-	
-	primaryRobot = Eurobot(primaryRobot.track,primaryRobot.diameter,[primaryRobot.position[0] + 2*translation, primaryRobot.position[1]],primaryRobot.angle,w) #Make new instance of robot translated by twice the displacement and rotated 180
+        primaryRobot.abstranslate([2*translation,0]) #Translate without taking in account angle of robot
+        primaryRobot.rotate(180)
    
 flip1 = Button(w3, text="Flip sides", command=flipPrimary) #Button for it
 flip1.grid(row=6,column=1) #Assign position
@@ -256,7 +253,7 @@ def printcoords(event):
 	if suppressOutput.get() == 0:
         	print("Clicked co-ordinate (X,Y):")
         	print(round(-(event.x - datum[0])/pixeltoCM[0],1),round(-(event.y - datum[1])/pixeltoCM[1],1))
-        	print;
+        	print
 
 def linecoords(event):
     global dotsRadius,firstPoint,pixeltoCM,datum,targetPoint2,dotsColour,measureLine,isRecording,targetPoint3,secondPoint,reddot,linevector
@@ -360,7 +357,7 @@ Button(w2, text="Update arena", command=setArena).grid(row=8,column=0)
 Button(w2, text="Save configuration", command=saveSettings).grid(row=9,column=0)
 Button(w2, text="Load configuration", command=loadSettings).grid(row=9,column=1)
 
-#testPath = pathPrint("Primary Robot Path")
+#primaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize,firstPoint)
 
 if autoLoad: #Do you want to load config file on window load?
 	loadSettings()
