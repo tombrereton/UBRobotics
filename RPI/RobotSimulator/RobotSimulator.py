@@ -20,7 +20,7 @@ global printer
 
 datumRadius = 10			#Radius of datum marker (circle)
 mainWindow = [800,600]			#Size of Main Window (The one that shows the arena)
-primaryWindow = [350,400]		#Size of Primary Robot Controller Window
+primaryWindow = [350,250]		#Size of Primary Robot Controller Window
 arenaWindow = [500,400]			#Size of Arena Controller Window
 filepath = "config.ini" 		#Filename of configuration file
 boardFileName = "board.jpg" 		#Filename of board image (must be portrait orientation)
@@ -98,10 +98,10 @@ w2 = Canvas(win2,bg="white")
 w2.pack(expand=YES,fill=BOTH) #let it fill the entire window
 
 #Datum text label and input fields
-t1 = Label(w2,text="Datum X: ").grid(row=0,column=0)
+t1 = Label(w2,text="Datum X: ").grid(row=0,column=0,pady=(20,0))
 e1 = Entry(w2) #DatumX
 e1.insert(0,datum[0]) #set input field
-e1.grid(row=0,column=1) #grid allows for easy positioning of canvas elements
+e1.grid(row=0,column=1,pady=(20,0)) #grid allows for easy positioning of canvas elements
 t2 = Label(w2,text="Datum Y: ").grid(row=1,column=0)
 e2 = Entry(w2) #DatumY
 e2.insert(0,datum[1])
@@ -115,11 +115,11 @@ t4 = Label(w2,text="Arena width: ").grid(row=4,column=0)
 e4 = Entry(w2) #DatumY
 e4.insert(0,height)
 e4.grid(row=4,column=1)
-Label(w2,bg="white",text="LMB to place position marker, RMB to place distance marker.").grid(row=6,column=0,columnspan=2)
-Label(w2,bg="white",text="Place a third point with MMB after placing the two markers to measure an angle.").grid(row=7,column=0,columnspan=2)
+#Label(w2,bg="white",text="LMB to place position marker, RMB to place distance marker.").grid(row=6,column=0,columnspan=2)
+#Label(w2,bg="white",text="Place a third point with MMB after placing the two markers to measure an angle.").grid(row=7,column=0,columnspan=2)
 suppressOutput = IntVar()
-Checkbutton(w2,text="Suppress measurement outputs", variable=suppressOutput).grid(row=10,column=0)
-    
+Checkbutton(w2,text="Suppress measurement outputs", variable=suppressOutput).grid(row=10,column=0,pady=(20,0))       
+
 def setArena():
     global datumColour,boundColour,boundThickness,datum, boundsize, pixeltoCM
     datum = [eval(e1.get()),eval(e2.get())] #get datum and boundary size from text input fields above
@@ -228,55 +228,102 @@ def saveSettings(): #Save all settings here
 def loadSettings(): #Load all settings here
     global primaryController,secondaryController
     try:
+        try:
+            primaryController.closeWin()
+            secondaryController.closeWin()
+        except:
+            print "No robot windows open"
+
         Config.read(filepath)
-        result = tkMessageBox.askquestion("Load configuration?","Are you sure you want to load? Any modifications will be deleted.", icon='warning')
-        if result == 'yes':
-            print "Config loaded"
-            e1.delete(0, END)
-            e1.insert(0, Config.getint('Arena','datumx'))
-            e2.delete(0, END)
-            e2.insert(0, Config.getint('Arena','datumy'))
-            e3.delete(0, END)
-            e3.insert(0, Config.getint('Arena','length'))
-            e4.delete(0, END)
-            e4.insert(0, Config.getint('Arena','width'))
-            setArena()
-            primaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize)
-            primaryController.e5.delete(0, END)
-            primaryController.e5.insert(0, Config.getint('Primary','startx'))
-            primaryController.e6.delete(0, END)
-            primaryController.e6.insert(0, Config.getint('Primary','starty'))
-            primaryController.e7.delete(0, END)
-            primaryController.e7.insert(0, Config.getint('Primary','heading'))
-            primaryController.e8.delete(0, END)
-            primaryController.e8.insert(0, Config.getint('Primary','track'))
-            primaryController.e9.delete(0, END)
-            primaryController.e9.insert(0, Config.getint('Primary','diameter'))
-            primaryController.setPrimary()
-            secondaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize)
-            secondaryController.e5.delete(0, END)
-            secondaryController.e5.insert(0, Config.getint('Secondary','startx'))
-            secondaryController.e6.delete(0, END)
-            secondaryController.e6.insert(0, Config.getint('Secondary','starty'))
-            secondaryController.e7.delete(0, END)
-            secondaryController.e7.insert(0, Config.getint('Secondary','heading'))
-            secondaryController.e8.delete(0, END)
-            secondaryController.e8.insert(0, Config.getint('Secondary','track'))
-            secondaryController.e9.delete(0, END)
-            secondaryController.e9.insert(0, Config.getint('Secondary','diameter'))
-            secondaryController.setPrimary()
-        else:
-            print "Load failed."
+        #result = tkMessageBox.askquestion("Load configuration?","Are you sure you want to load? Any modifications will be deleted.", icon='warning')
+        #if result == 'yes':
+        e1.delete(0, END)
+        e1.insert(0, Config.getint('Arena','datumx'))
+        e2.delete(0, END)
+        e2.insert(0, Config.getint('Arena','datumy'))
+        e3.delete(0, END)
+        e3.insert(0, Config.getint('Arena','length'))
+        e4.delete(0, END)
+        e4.insert(0, Config.getint('Arena','width'))
+        setArena()
+        primaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize)
+        primaryController.e5.delete(0, END)
+        primaryController.e5.insert(0, Config.getint('Primary','startx'))
+        primaryController.e6.delete(0, END)
+        primaryController.e6.insert(0, Config.getint('Primary','starty'))
+        primaryController.e7.delete(0, END)
+        primaryController.e7.insert(0, Config.getint('Primary','heading'))
+        primaryController.e8.delete(0, END)
+        primaryController.e8.insert(0, Config.getint('Primary','track'))
+        primaryController.e9.delete(0, END)
+        primaryController.e9.insert(0, Config.getint('Primary','diameter'))
+        primaryController.setPrimary()
+        secondaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize)
+        secondaryController.e5.delete(0, END)
+        secondaryController.e5.insert(0, Config.getint('Secondary','startx'))
+        secondaryController.e6.delete(0, END)
+        secondaryController.e6.insert(0, Config.getint('Secondary','starty'))
+        secondaryController.e7.delete(0, END)
+        secondaryController.e7.insert(0, Config.getint('Secondary','heading'))
+        secondaryController.e8.delete(0, END)
+        secondaryController.e8.insert(0, Config.getint('Secondary','track'))
+        secondaryController.e9.delete(0, END)
+        secondaryController.e9.insert(0, Config.getint('Secondary','diameter'))
+        secondaryController.setPrimary()
+        print "Config loaded"
+        #else:
+        #    print "Load failed."
     except:
         tkMessageBox.showerror("Error!","Config file doesn't exist. Please save before loading.")
         primaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize)
         secondaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize)
 
-Button(w2, text="Update arena", command=setArena).grid(row=8,column=0)
-Button(w2, text="Save configuration", command=saveSettings).grid(row=9,column=0)
-Button(w2, text="Load configuration", command=loadSettings).grid(row=9,column=1)
+#Button(w2, text="Update arena", command=setArena).grid(row=8,column=0)
+#Button(w2, text="Save configuration", command=saveSettings).grid(row=9,column=0)
+#Button(w2, text="Load configuration", command=loadSettings).grid(row=9,column=1)
 
+#Change datum point to red marker
+def markdatum():
+    global firstPoint
+    e1.delete(0,END)
+    e2.delete(0,END)
+    e1.insert(0,firstPoint[0]) #set input field
+    e2.insert(0,firstPoint[1])
+    setArena()
 
+def markbounds():
+    global firstPoint, datum
+    e3.delete(0,END)
+    e4.delete(0,END)
+    e3.insert(0,-firstPoint[0]+datum[0]) #set input field
+    e4.insert(0,-firstPoint[1]+datum[1])
+    setArena()
+
+def squareness(): #Check if the image is not skewed. Skewed aspect ratio of images ruin movement
+    global boundsize
+
+    aspect = float(boundsize[0]) / float(boundsize[1]) #Aspect ratio of image, which should be same as 3m x 2m
+    squareness = aspect/1.5
+    #print aspect
+    #print squareness
+
+    tkMessageBox.showinfo("Arena image squareness","Squareness of image:"+"\n"+str(round(squareness,3))+"\n\nMust be as close as possible to 1. Badly skewed images must be correctly resized to the correct aspect ratio.\n\nOnly use this function once arena datum and dimensions are correctly set.")
+
+menubar = Menu(win2)
+win2.config(menu=menubar)
+
+filemenu = Menu(menubar)
+filemenu.add_command(label="Load config", command=loadSettings)
+filemenu.add_command(label="Save config", command=saveSettings)
+menubar.add_cascade(label="File",menu=filemenu)
+ 
+arenamenu = Menu(menubar)
+arenamenu.add_command(label="Update", command=setArena)
+arenamenu.add_command(label="Set datum co-ordinates to red dot", command=markdatum)
+arenamenu.add_command(label="Set arena top-left corner to red dot", command=markbounds)
+arenamenu.add_command(label="Check squareness of image", command=squareness)
+menubar.add_cascade(label="Arena",menu=arenamenu)
+ 
 if autoLoad: #Do you want to load config file on window load?
 	loadSettings()
 
