@@ -2,6 +2,7 @@ from Tkinter import *
 from eurobot import *
 from pathPrint import pathPrint
 import numpy
+import tkFont
 
 class controller(object):
 
@@ -69,7 +70,7 @@ class controller(object):
 
         self.primaryRobot.abstranslate([dx,dy])
         
-    def __init__(self,parentCanvas,initSize,pixelinit,datuminit,boundsizeinit):
+    def __init__(self,parentCanvas,initSize,pixelinit,datuminit,boundsizeinit,robotName,fginit,bginit):
         primaryWindow = initSize
         self.datum = datuminit
         self.boundsize = boundsizeinit
@@ -110,13 +111,17 @@ class controller(object):
         #flip1 = Button(w3, text="Flip sides", command=self.flipPrimary) #Button for it
         #flip1.grid(row=6,column=1) #Assign position
         Label(w3,text="", bg="white").grid(row=7,column=0) #blank space
-        setRecord = Button(w3, text="Move to position marker", command=self.setRecord) #button to draw robot path by clicking co-ordinates
+        setRecord = Button(w3, text="Move to red dot", command=self.setRecord) #button to draw robot path by clicking co-ordinates
         setRecord.grid(row=8,column=0)
         self.reversegear = IntVar()
         Checkbutton(w3,text="Reverse gear", variable=self.reversegear).grid(row=8,column=1)
         #self.printButton = Button(w3,text="Record Path",command=self.setPath)
         #self.printButton.grid(row=9,column=0) #Must call on separate line!
         
+        self.myFont = tkFont.Font(family = 'Helvetica', size = 20, weight = 'bold', slant="italic")
+        nametag = Label(w3,text=robotName,bg=bginit,fg=fginit,font=self.myFont)
+        nametag.grid(row=9,column=0,columnspan=2,pady=(20,0))
+
         menubar = Menu(self.win3)
         self.win3.config(menu=menubar)
 

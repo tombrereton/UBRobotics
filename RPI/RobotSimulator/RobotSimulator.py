@@ -246,7 +246,7 @@ def loadSettings(): #Load all settings here
         e4.delete(0, END)
         e4.insert(0, Config.getint('Arena','width'))
         setArena()
-        primaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize)
+        primaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize,"Primary","white","blue")
         primaryController.e5.delete(0, END)
         primaryController.e5.insert(0, Config.getint('Primary','startx'))
         primaryController.e6.delete(0, END)
@@ -258,7 +258,7 @@ def loadSettings(): #Load all settings here
         primaryController.e9.delete(0, END)
         primaryController.e9.insert(0, Config.getint('Primary','diameter'))
         primaryController.setPrimary()
-        secondaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize)
+        secondaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize,"Secondary","black","yellow")
         secondaryController.e5.delete(0, END)
         secondaryController.e5.insert(0, Config.getint('Secondary','startx'))
         secondaryController.e6.delete(0, END)
@@ -307,7 +307,7 @@ def squareness(): #Check if the image is not skewed. Skewed aspect ratio of imag
     #print aspect
     #print squareness
 
-    tkMessageBox.showinfo("Arena image squareness","Squareness of image:"+"\n"+str(round(squareness,3))+"\n\nMust be as close as possible to 1. Badly skewed images must be correctly resized to the correct aspect ratio.\n\nOnly use this function once arena datum and dimensions are correctly set.")
+    tkMessageBox.showinfo("Arena image squareness","Squareness of image:"+"\n"+str(round(squareness,3))+"\n\nMust be as close as possible to 1. Badly skewed images must be correctly resized to the correct aspect ratio.\n\nOversquared images (>1) are too long in length, undersquared images are too short in length. Length is the 3m side of arena.\n\nOnly use this function once arena datum and dimensions are correctly set.")
 
 menubar = Menu(win2)
 win2.config(menu=menubar)
@@ -319,7 +319,7 @@ menubar.add_cascade(label="File",menu=filemenu)
  
 arenamenu = Menu(menubar)
 arenamenu.add_command(label="Update", command=setArena)
-arenamenu.add_command(label="Set datum co-ordinates to red dot", command=markdatum)
+arenamenu.add_command(label="Set arena bottom-right to red dot", command=markdatum)
 arenamenu.add_command(label="Set arena top-left corner to red dot", command=markbounds)
 arenamenu.add_command(label="Check squareness of image", command=squareness)
 menubar.add_cascade(label="Arena",menu=arenamenu)
