@@ -11,19 +11,20 @@ import subprocess #Run bash scripts within python
 from eurobot import *
 from pathPrint import pathPrint
 from controller import controller
+import Tkconstants, tkFileDialog
 
 global primaryRobot, datum, boundsize, firstPoint, measureLine, isRecording, angleLine, secondPoint, pixeltoCM, arenaImageScale #make global so all functions can access it
 global datumColour,boundColour,boundThickness,dotsColour, dotsRadius,reversegear
-global printer
+global printer,boardFileName
 
 ################################## SET PROPERTIES HERE ####################################
 
 datumRadius = 10			#Radius of datum marker (circle)
 mainWindow = [800,600]			#Size of Main Window (The one that shows the arena)
 primaryWindow = [350,250]		#Size of Primary Robot Controller Window
-arenaWindow = [500,400]			#Size of Arena Controller Window
+arenaWindow = [400,400]			#Size of Arena Controller Window
 filepath = "config.ini" 		#Filename of configuration file
-boardFileName = "board.jpg" 		#Filename of board image (must be portrait orientation)
+boardFileName = "colour.jpg" 		#Filename of board image (must be portrait orientation)
 scaletoArena = True 			#Scale main window to arena image size
 arenaImageScale = [1.0,1.0] 		#Scale of arena (Xscale, Yscale) image where 1.0 is original size
 arenarotation = 90 			#Amount to rotate original arena picture (degrees) DEFAULT is +90 for 90 deg anti-clockwise
@@ -63,18 +64,6 @@ w.pack(expand=YES,fill=BOTH)
 measureLine = w.create_line(0,0,0,0)
 angleLine = w.create_line(0,0,0,0)
 
-image = Image.open(boardFileName) #import board image
-width, height = image.size #Pass the size to variables
-image = image.resize((int(width*arenaImageScale[0]), int(height*arenaImageScale[1])), Image.ANTIALIAS)
-photo = ImageTk.PhotoImage(image.rotate(arenarotation)) #convert for ImageTK format 90deg
-height, width = image.size #inverted order of height width as the image is rotated 90deg
-board = w.create_image(width/2,height/2,image = photo); #add image object to main canvas 'w'
-
-if scaletoArena: #If the window is set to scale to the size of the arena
-	win.geometry(str(width)+"x"+str(height))
-
-datum = [width,height] #store datum and arena boundary sizes to variable
-boundsize = [width,height]
 
 class drawcircleradius:
 	def __init__(self,canv,x,y,rad,colour):
@@ -86,9 +75,9 @@ targetPoint2 = drawcircleradius(w,0,0,0,'blue')
 targetPoint3 = drawcircleradius(w,0,0,0,'blue')
 
 #Mark datum
-datumPoint = drawcircleradius(w,width,height,datumRadius,'pink')
+datumPoint = drawcircleradius(w,0,0,datumRadius,'pink')
 #Mark boundary walls
-boundary = w.create_rectangle(0,0,width,height,outline='red',width=3)
+boundary = w.create_rectangle(0,0,0,0,outline='red',width=3)
 
 #Controller Window
 win2 = Toplevel() #Create a Tkinter window object for controller TOPLEVEL when you have more than one
@@ -109,11 +98,11 @@ e2.grid(row=1,column=1)
 #Arena size
 t3 = Label(w2,text="Arena length: ").grid(row=3,column=0)
 e3 = Entry(w2) #DatumX
-e3.insert(0,width)
+e3.insert(0,0)
 e3.grid(row=3,column=1)
 t4 = Label(w2,text="Arena width: ").grid(row=4,column=0)
 e4 = Entry(w2) #DatumY
-e4.insert(0,height)
+e4.insert(0,0)
 e4.grid(row=4,column=1)
 #Label(w2,bg="white",text="LMB to place position marker, RMB to place distance marker.").grid(row=6,column=0,columnspan=2)
 #Label(w2,bg="white",text="Place a third point with MMB after placing the two markers to measure an angle.").grid(row=7,column=0,columnspan=2)
@@ -121,7 +110,7 @@ suppressOutput = IntVar()
 Checkbutton(w2,text="Suppress measurement outputs", variable=suppressOutput).grid(row=10,column=0,pady=(20,0))       
 
 def setArena():
-    global datumColour,boundColour,boundThickness,datum, boundsize, pixeltoCM
+    global datumColour,boundColour,boundThickness,datum, boundsize, pixeltoCM,photo,boardFileName
     datum = [eval(e1.get()),eval(e2.get())] #get datum and boundary size from text input fields above
     boundsize = [eval(e3.get()),eval(e4.get())] #Evaluate string to numbers
     pixeltoCM[0] = float(e3.get()) / 300 #Horizontal length is 300 cm, so work out the ratio of pixel to cm using the arena width and length taken from boundsize
@@ -129,6 +118,17 @@ def setArena():
     print("Settings updated.")
     #now redraw datum and boundary
     w.delete("all") #delete all images from previous setting
+    
+    image = Image.open(boardFileName) #import board image
+    width, height = image.size #Pass the size to variables
+    image = image.resize((int(width*arenaImageScale[0]), int(height*arenaImageScale[1])), Image.ANTIALIAS)
+    photo = ImageTk.PhotoImage(image.rotate(arenarotation)) #convert for ImageTK format 90deg
+    height, width = image.size #inverted order of height width as the image is rotated 90deg
+    board = w.create_image(width/2,height/2,image = photo); #add image object to main canvas 'w'
+
+    if scaletoArena: #If the window is set to scale to the size of the arena
+            win.geometry(str(width)+"x"+str(height))
+
     height, width = image.size
     board = w.create_image(width/2,height/2,image = photo); #add image object to main canvas 'w'
     datumPoint = drawcircleradius(w,datum[0],datum[1],datumRadius,datumColour) #draw datum point as circle
@@ -194,7 +194,7 @@ def anglemeasure(event):
 
 def saveSettings(): #Save all settings here
     cfgfile = open(filepath,'w')
-    global primaryController,secondaryController
+    global boardFileName,primaryController,secondaryController
     try:        
         Config.add_section('Arena')
         Config.add_section('Primary')
@@ -208,6 +208,7 @@ def saveSettings(): #Save all settings here
         Config.set('Arena','datumy',e2.get())
         Config.set('Arena','length',e3.get())
         Config.set('Arena','width',e4.get())
+        Config.set('Arena','boardfilename',boardFileName)
         Config.set('Primary','startx',primaryController.e5.get())
         Config.set('Primary','starty',primaryController.e6.get())
         Config.set('Primary','heading',primaryController.e7.get())
@@ -226,7 +227,7 @@ def saveSettings(): #Save all settings here
         print "Save failed."
 
 def loadSettings(): #Load all settings here
-    global primaryController,secondaryController
+    global primaryController,secondaryController,boardFileName
     try:
         try:
             primaryController.closeWin()
@@ -245,6 +246,7 @@ def loadSettings(): #Load all settings here
         e3.insert(0, Config.getint('Arena','length'))
         e4.delete(0, END)
         e4.insert(0, Config.getint('Arena','width'))
+        boardFileName = Config.get('Arena','boardfilename')
         setArena()
         primaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize,"Primary","white","blue")
         primaryController.e5.delete(0, END)
@@ -309,12 +311,19 @@ def squareness(): #Check if the image is not skewed. Skewed aspect ratio of imag
 
     tkMessageBox.showinfo("Arena image squareness","Squareness of image:"+"\n"+str(round(squareness,3))+"\n\nMust be as close as possible to 1. Badly skewed images must be correctly resized to the correct aspect ratio.\n\nOversquared images (>1) are too long in length, undersquared images are too short in length. Length is the 3m side of arena.\n\nOnly use this function once arena datum and dimensions are correctly set.")
 
+def loadimage():
+    global boardFileName
+
+    boardFileName = tkFileDialog.askopenfilename(title="Select arena image",filetypes=(("JPEG files","*.jpg"),("PNG files","*.png"),("All Files","*.*")))
+    setArena()
+
 menubar = Menu(win2)
 win2.config(menu=menubar)
 
 filemenu = Menu(menubar)
 filemenu.add_command(label="Load config", command=loadSettings)
 filemenu.add_command(label="Save config", command=saveSettings)
+filemenu.add_command(label="Open arena image..", command=loadimage)
 menubar.add_cascade(label="File",menu=filemenu)
  
 arenamenu = Menu(menubar)

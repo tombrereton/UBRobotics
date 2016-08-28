@@ -67,7 +67,10 @@ class controller(object):
     def robottoDot(self):
         dx = self.firstPoint[0] - self.primaryRobot.position[0]
         dy = self.firstPoint[1] - self.primaryRobot.position[1]
-
+        self.e5.delete(0,END)
+        self.e6.delete(0,END)
+        self.e5.insert(0,self.firstPoint[0])
+        self.e6.insert(0,self.firstPoint[1])
         self.primaryRobot.abstranslate([dx,dy])
         
     def __init__(self,parentCanvas,initSize,pixelinit,datuminit,boundsizeinit,robotName,fginit,bginit):
@@ -111,7 +114,7 @@ class controller(object):
         #flip1 = Button(w3, text="Flip sides", command=self.flipPrimary) #Button for it
         #flip1.grid(row=6,column=1) #Assign position
         Label(w3,text="", bg="white").grid(row=7,column=0) #blank space
-        setRecord = Button(w3, text="Move to red dot", command=self.setRecord) #button to draw robot path by clicking co-ordinates
+        setRecord = Button(w3, text="Translate to red dot", command=self.setRecord) #button to draw robot path by clicking co-ordinates
         setRecord.grid(row=8,column=0)
         self.reversegear = IntVar()
         Checkbutton(w3,text="Reverse gear", variable=self.reversegear).grid(row=8,column=1)
@@ -132,7 +135,7 @@ class controller(object):
         
         self.controlmenu = Menu(menubar)
         self.controlmenu.add_command(label="Begin Path Recording", command=self.setPath)
-        self.controlmenu.add_command(label="Move robot to red dot", command=self.robottoDot)
+        self.controlmenu.add_command(label="Move robot starting position to red dot", command=self.robottoDot)
         menubar.add_cascade(label="Controls",menu=self.controlmenu)
         
         self.w.bind("<Button 1>",self.coords, add ="+")	#Find co-ordinate
