@@ -15,7 +15,7 @@ import Tkconstants, tkFileDialog
 
 global primaryRobot, datum, boundsize, firstPoint, measureLine, isRecording, angleLine, secondPoint, pixeltoCM, arenaImageScale #make global so all functions can access it
 global datumColour,boundColour,boundThickness,dotsColour, dotsRadius,reversegear
-global printer,boardFileName
+global printer,boardFileName,arenaImageScale,arenarotation
 
 ################################## SET PROPERTIES HERE ####################################
 
@@ -194,7 +194,7 @@ def anglemeasure(event):
 
 def saveSettings(): #Save all settings here
     cfgfile = open(filepath,'w')
-    global boardFileName,primaryController,secondaryController
+    global boardFileName,primaryController,secondaryController,arenaImageScale,arenarotation
     try:        
         Config.add_section('Arena')
         Config.add_section('Primary')
@@ -209,6 +209,8 @@ def saveSettings(): #Save all settings here
         Config.set('Arena','length',e3.get())
         Config.set('Arena','width',e4.get())
         Config.set('Arena','boardfilename',boardFileName)
+        Config.set('Arena','scale',arenaImageScale[0])
+        Config.set('Arena','rotation',arenarotation)
         Config.set('Primary','startx',primaryController.e5.get())
         Config.set('Primary','starty',primaryController.e6.get())
         Config.set('Primary','heading',primaryController.e7.get())
@@ -227,7 +229,7 @@ def saveSettings(): #Save all settings here
         print "Save failed."
 
 def loadSettings(): #Load all settings here
-    global primaryController,secondaryController,boardFileName
+    global primaryController,secondaryController,boardFileName,arenaImageScale,arenarotation
     try:
         try:
             primaryController.closeWin()
@@ -247,6 +249,9 @@ def loadSettings(): #Load all settings here
         e4.delete(0, END)
         e4.insert(0, Config.getint('Arena','width'))
         boardFileName = Config.get('Arena','boardfilename')
+        arenaImageScale[0] = Config.getfloat('Arena','scale')
+        arenaImageScale[1] = Config.getfloat('Arena','scale')
+        arenarotation = Config.getint('Arena','rotation')
         setArena()
         primaryController = controller(w,primaryWindow,pixeltoCM,datum,boundsize,"Primary","white","blue")
         primaryController.e5.delete(0, END)
@@ -286,15 +291,19 @@ def loadSettings(): #Load all settings here
 
 #Change datum point to red marker
 def markdatum():
-    global firstPoint
+    global firstPoint,boundsize,datum
     e1.delete(0,END)
     e2.delete(0,END)
+    e3.delete(0,END)
+    e4.delete(0,END)
     e1.insert(0,firstPoint[0]) #set input field
     e2.insert(0,firstPoint[1])
+    e3.insert(0,boundsize[0]+(firstPoint[0]-datum[0]))
+    e4.insert(0,boundsize[1]+(firstPoint[1]-datum[1]))
     setArena()
 
 def markbounds():
-    global firstPoint, datum
+    global firstPoint, datum,boundsize
     e3.delete(0,END)
     e4.delete(0,END)
     e3.insert(0,-firstPoint[0]+datum[0]) #set input field
@@ -313,8 +322,22 @@ def squareness(): #Check if the image is not skewed. Skewed aspect ratio of imag
 
 def loadimage():
     global boardFileName
+    newboardFileName = tkFileDialog.askopenfilename(title="Select arena image",filetypes=(("JPEG files","*.jpg"),("PNG files","*.png"),("All Files","*.*")))
+    if newboardFileName: #If string is not empty
+        boardFileName = newboardFileName
+        setArena()
 
-    boardFileName = tkFileDialog.askopenfilename(title="Select arena image",filetypes=(("JPEG files","*.jpg"),("PNG files","*.png"),("All Files","*.*")))
+def expand(magnitude):
+    global arenaImageScale
+
+    arenaImageScale[0] += magnitude
+    arenaImageScale[1] += magnitude
+    setArena()
+
+def rotatearena(degrees):
+    global arenarotation
+
+    arenarotation += degrees
     setArena()
 
 menubar = Menu(win2)
@@ -326,10 +349,16 @@ filemenu.add_command(label="Save config", command=saveSettings)
 filemenu.add_command(label="Open arena image..", command=loadimage)
 menubar.add_cascade(label="File",menu=filemenu)
  
+viewmenu = Menu(menubar)
+viewmenu.add_command(label="Rotate arena 90 degrees CCW", command=lambda: rotatearena(90))
+viewmenu.add_command(label="Expand arena", command=lambda: expand(0.1))
+viewmenu.add_command(label="Shrink arena", command=lambda: expand(-0.1))
+menubar.add_cascade(label="View",menu=viewmenu)
+
 arenamenu = Menu(menubar)
 arenamenu.add_command(label="Update", command=setArena)
-arenamenu.add_command(label="Set arena bottom-right to red dot", command=markdatum)
-arenamenu.add_command(label="Set arena top-left corner to red dot", command=markbounds)
+arenamenu.add_command(label="Set arena datum to red dot", command=markdatum)
+arenamenu.add_command(label="Set arena boundary to red dot", command=markbounds)
 arenamenu.add_command(label="Check squareness of image", command=squareness)
 menubar.add_cascade(label="Arena",menu=arenamenu)
  
