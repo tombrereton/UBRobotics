@@ -3,6 +3,7 @@ from eurobot import *
 from pathPrint import pathPrint
 import numpy
 import tkFont
+import time
 
 class controller(object):
 
@@ -12,8 +13,10 @@ class controller(object):
 	dy = self.firstPoint[1] - self.primaryRobot.position[1]
 	
 	if abs(dx) + abs(dy) > 0: #As long as there is some translation
-        	self.w.create_line(self.firstPoint[0],self.firstPoint[1],self.primaryRobot.position[0],self.primaryRobot.position[1],width = 2, fill = "black") #Draw path line
-		angle = math.atan2(dx,-dy) #Return signed tangent angle from robot to destination RELATIVE TO EAST
+                if self.recording == True:
+                    self.w.create_line(self.firstPoint[0],self.firstPoint[1],self.primaryRobot.position[0],self.primaryRobot.position[1],width = 2, fill = "black") #Draw path line
+		
+                angle = math.atan2(dx,-dy) #Return signed tangent angle from robot to destination RELATIVE TO EAST
 		north = -(math.degrees(angle)) #Correct to North, change to degrees
 		rotate = north - self.primaryRobot.angle #Angular displacement
                 direction = 1 #initially forward
@@ -46,7 +49,7 @@ class controller(object):
     def setPath(self):
         if self.recording == True:
             if self.printer != "":
-                printed = pathPrint("Robot Path",self.printer)
+                self.printed = pathPrint("Robot Path",self.printer)
            # self.printButton.config(relief='raised')
             self.controlmenu.entryconfig(1, label="Begin Path Recording")
         else:
@@ -73,6 +76,34 @@ class controller(object):
         self.e6.insert(0,self.firstPoint[1])
         self.primaryRobot.abstranslate([dx,dy])
         
+    def moveRobot(self):
+        try:
+            script = self.printed.printMap() #Print out the robot movement values
+        except:
+            tkMessageBox.showerror("Error!","Robot path is blank!")
+
+        self.setPrimary()
+        #Animate the robot according to code
+        for x in range(0,len(script)):
+            self.primaryRobot.canvas.update()
+            time.sleep(0.5)
+            if script[x][1] != 0: #Value of movement is not ZERO
+                if script[x][0] == 'm': #Translation
+                    print "Moving"
+
+                    reverseFlag = True #Initially check to reverse
+
+                    if script[x][1] > 0: #Is the move value positive? If so then it's not reversing
+                        reverseFlag = False
+
+                    self.primaryRobot.translate(script[x][1]*self.pixeltoCM[0],reverseFlag)
+
+                elif script[x][0] == 'r':
+                    print "Rotating"
+                    self.primaryRobot.rotate(script[x][1])
+
+            self.primaryRobot.canvas.update()
+    
     def __init__(self,parentCanvas,initSize,pixelinit,datuminit,boundsizeinit,robotName,fginit,bginit):
         primaryWindow = initSize
         self.datum = datuminit
@@ -136,6 +167,7 @@ class controller(object):
         self.controlmenu = Menu(menubar)
         self.controlmenu.add_command(label="Begin Path Recording", command=self.setPath)
         self.controlmenu.add_command(label="Move robot starting position to red dot", command=self.robottoDot)
+        self.controlmenu.add_command(label="Move robot according to Robot Path code", command=self.moveRobot)
         menubar.add_cascade(label="Controls",menu=self.controlmenu)
         
         self.w.bind("<Button 1>",self.coords, add ="+")	#Find co-ordinate
