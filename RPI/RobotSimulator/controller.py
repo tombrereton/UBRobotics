@@ -4,6 +4,7 @@ from pathPrint import pathPrint
 import numpy
 import tkFont
 import time
+import thread
 
 class controller(object):
 
@@ -14,7 +15,7 @@ class controller(object):
 	
 	if abs(dx) + abs(dy) > 0: #As long as there is some translation
                 if self.recording == True:
-                    self.w.create_line(self.firstPoint[0],self.firstPoint[1],self.primaryRobot.position[0],self.primaryRobot.position[1],width = 2, fill = "black") #Draw path line
+                    self.w.create_line(self.firstPoint[0],self.firstPoint[1],self.primaryRobot.position[0],self.primaryRobot.position[1],width = 2, fill = "green") #Draw path line
 		
                 angle = math.atan2(dx,-dy) #Return signed tangent angle from robot to destination RELATIVE TO EAST
 		north = -(math.degrees(angle)) #Correct to North, change to degrees
@@ -86,17 +87,11 @@ class controller(object):
         #Animate the robot according to code
         for x in range(0,len(script)):
             self.primaryRobot.canvas.update()
-            time.sleep(0.5)
             if script[x][1] != 0: #Value of movement is not ZERO
                 if script[x][0] == 'm': #Translation
                     print "Moving"
-
-                    reverseFlag = True #Initially check to reverse
-
-                    if script[x][1] > 0: #Is the move value positive? If so then it's not reversing
-                        reverseFlag = False
-
-                    self.primaryRobot.translate(script[x][1]*self.pixeltoCM[0],reverseFlag)
+                    
+                    self.primaryRobot.animtranslate(script[x][1]*self.pixeltoCM[0])
 
                 elif script[x][0] == 'r':
                     print "Rotating"
@@ -167,7 +162,7 @@ class controller(object):
         self.controlmenu = Menu(menubar)
         self.controlmenu.add_command(label="Begin Path Recording", command=self.setPath)
         self.controlmenu.add_command(label="Move robot starting position to red dot", command=self.robottoDot)
-        self.controlmenu.add_command(label="Move robot according to Robot Path code", command=self.moveRobot)
+        self.controlmenu.add_command(label="Move robot according to Robot Path code", command=lambda: thread.start_new_thread(self.moveRobot,()))
         menubar.add_cascade(label="Controls",menu=self.controlmenu)
         
         self.w.bind("<Button 1>",self.coords, add ="+")	#Find co-ordinate

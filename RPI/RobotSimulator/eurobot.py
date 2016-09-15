@@ -45,8 +45,26 @@ class Eurobot(object):
             self.position[1] += distance * y_vector
             self.canvas.move(self.robot, distance * x_vector, distance * y_vector) #move by given vector
         #print "Moving from: [%d, %d] to [%d, %d]" % (self.position[0] - distance * x_vector,self.position[1] - distance *y_vector,self.position[0],self.position[1]) #written like this as python doesn't have constants
-     
+    
+    def animtranslate(self,distance):     
+        animationScale = 10 #Speed factor of animation
+        frames = int(round(distance,0)) #Number of frames of animation is equal to INTEGER(distance)
+        x_vector = -math.sin(math.radians(self.angle)) #Work out X and Y displacement vectors according to heading
+        y_vector = -math.cos(math.radians(self.angle))
+        
+        self.position[0] += distance * x_vector #add to current position
+        self.position[1] += distance * y_vector
+        
+        for x in range(1,int(frames/animationScale)): #Repeat until moved sufficient number of frames of animation
+            self.canvas.update()
+            self.canvas.move(self.robot,x_vector*animationScale,y_vector*animationScale)
+            time.sleep(0.05)
+            self.canvas.update()
 
+        self.canvas.update()
+        self.robot = self.canvas.create_image(self.position[0],self.position[1],image = self.photo) #display the PhotoImage object
+        self.canvas.update()
+   
     def abstranslate(self,distance): #move regardless of heading
         self.position[0] += distance[0]
         self.position[1] += distance[1]

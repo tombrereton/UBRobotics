@@ -7,7 +7,7 @@ import ConfigParser #to save settings
 import os.path #check file exists
 import time
 import numpy
-import subprocess #Run bash scripts within python
+#import subprocess #Run bash scripts within python
 from eurobot import *
 from pathPrint import pathPrint
 from controller import controller
