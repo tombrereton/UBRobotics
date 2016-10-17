@@ -108,7 +108,7 @@ class controller(object):
         self.printer = ""
         self.w = parentCanvas
         self.win3 = Toplevel() #Create a Tkinter window object for controller TOPLEVEL when you have more than one
-        self.win3.title("Robot Controller") #set all primary robot parameters
+        self.win3.title("Robot Controller - " + str(robotName)) #set all primary robot parameters
         self.win3.geometry(str(primaryWindow[0])+"x"+str(primaryWindow[1]))
         w3 = Canvas(self.win3,bg="white")
         w3.pack(expand=YES,fill=BOTH)

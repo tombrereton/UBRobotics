@@ -1,8 +1,24 @@
 from Tkinter import *
 from ScrolledText import *
-import re
+import re, tkFileDialog
 
 class pathPrint(object):
+    def loadCode(self):
+        newFileName = tkFileDialog.askopenfilename(title="Select robot path code...",filetypes=(("Text files","*.txt"),("All Files","*.*")))
+        
+        if newFileName: #If string is not empty
+            #Load text file
+            #f = open(newFileName,'r') #Open Read-only
+            self.text.delete("1.0",END)
+            self.text.insert(INSERT,newFileName.read())
+            f.close()
+
+    def saveCode(self):
+        savefile = tkFileDialog.asksaveasfile(title="Save robot path code as...",mode='w',defaultextension=".txt") 
+        
+        if savefile:
+            savefile.write = self.text.get("1.0",END)
+            savefile.close()
 
     def __init__(self,title,textinit):
          
@@ -15,6 +31,15 @@ class pathPrint(object):
         self.text.insert(INSERT,textinit)
         self.text.pack()
         #self.textinit = textinit #Get the actual text of the path
+        
+        menubar = Menu(self.wind)
+        self.wind.config(menu=menubar)
+
+        robotmenu = Menu(menubar)
+        #robotmenu.add_command(label="Load Code", command=self.loadCode)
+        #robotmenu.add_command(label="Save Code", command=self.saveCode)
+        menubar.add_cascade(label="File",menu=robotmenu)
+        
 
     def printMap(self):
         value = self.text.get("1.0",END) #Return the current value of the scrollable text field
